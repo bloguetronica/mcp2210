@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.1.0
+/* MCP2210 class - Version 0.2.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -53,8 +53,7 @@ public:
     bool isOpen() const;
 
     void close();
-    std::vector<uint8_t> hidRead(int &errcnt, std::string &errstr);
-    void hidWrite(const std::vector<uint8_t> &command, int &errcnt, std::string &errstr);
+    std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);
     void interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr);
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
 

@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.1.0
+/* MCP2210 class - Version 0.2.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -70,9 +70,21 @@ void MCP2210::close()
     }
 }
 
-// Reads the data in the sequence of a previously sent HID command
-std::vector<uint8_t> MCP2210::hidRead(int &errcnt, std::string &errstr)
+// Sends a HID command based on the given vector, and returns the response
+// The command vector can be shorter or longer than 64 bytes, but the resulting command will either be padded with zeros or truncated in order to fit
+std::vector<uint8_t> MCP2210::hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr)
 {
+    size_t bytesToFill = data.size() > COMMAND_SIZE ? COMMAND_SIZE : data.size();
+    unsigned char writeBuffer[COMMAND_SIZE] = {0x00};  // It is important to initialize the array in this manner, so that unused indexes are filled with zeros!
+    for (size_t i = 0; i < bytesToFill; ++i) {
+        writeBuffer[i] = data[i];
+    }
+#if LIBUSB_API_VERSION >= 0x01000105
+    interruptTransfer(EPOUT, writeBuffer, static_cast<int>(COMMAND_SIZE), nullptr, errcnt, errstr);
+#else
+    int bytesWritten;
+    interruptTransfer(EPOUT, writeBuffer, static_cast<int>(COMMAND_SIZE), &bytesWritten, errcnt, errstr);
+#endif
     unsigned char readBuffer[COMMAND_SIZE];
     int bytesRead = 0;  // Important!
     interruptTransfer(EPIN, readBuffer, static_cast<int>(COMMAND_SIZE), &bytesRead, errcnt, errstr);
@@ -81,23 +93,6 @@ std::vector<uint8_t> MCP2210::hidRead(int &errcnt, std::string &errstr)
         retdata[i] = readBuffer[i];
     }
     return retdata;
-}
-
-// Sends a HID command based on the given vector
-// The vector can be shorter or longer than 64 bytes, but the resulting command will either be padded with zeros or truncated
-void MCP2210::hidWrite(const std::vector<uint8_t> &command, int &errcnt, std::string &errstr)
-{
-    size_t bytesToFill = command.size() > COMMAND_SIZE ? COMMAND_SIZE : command.size();
-    unsigned char writeBuffer[COMMAND_SIZE] = {0x00};  // It is important to initialize the array in this manner, so that unused indexes are filled with zeros!
-    for (size_t i = 0; i < bytesToFill; ++i) {
-        writeBuffer[i] = command[i];
-    }
-#if LIBUSB_API_VERSION >= 0x01000105
-    interruptTransfer(EPOUT, writeBuffer, static_cast<int>(COMMAND_SIZE), nullptr, errcnt, errstr);
-#else
-    int bytesWritten;
-    interruptTransfer(EPOUT, writeBuffer, static_cast<int>(COMMAND_SIZE), &bytesWritten, errcnt, errstr);
-#endif
 }
 
 // Safe interrupt transfer
@@ -125,7 +120,7 @@ void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int l
                        << ")." << std::endl;
             }
             errstr += stream.str();
-            if (result == LIBUSB_ERROR_NO_DEVICE || result == LIBUSB_ERROR_IO) {  // Note that libusb_interrupt_transfer() may return "LIBUSB_ERROR_IO" [-1] on device disconnect (to be verified)
+            if (result == LIBUSB_ERROR_NO_DEVICE || result == LIBUSB_ERROR_IO) {  // Note that libusb_interrupt_transfer() may return "LIBUSB_ERROR_IO" [-1] on device disconnect
                 disconnected_ = true;  // This reports that the device has been disconnected
             }
         }
