@@ -29,7 +29,6 @@ extern "C" {
 
 // Definitions
 const unsigned int TR_TIMEOUT = 500;  // Transfer timeout in milliseconds
-const size_t COMMAND_SIZE = 64;       // HID command size
 
 MCP2210::MCP2210() :
     context_(nullptr),
