@@ -73,6 +73,7 @@ void MCP2210::close()
 // The command vector can be shorter or longer than 64 bytes, but the resulting command will either be padded with zeros or truncated in order to fit
 std::vector<uint8_t> MCP2210::hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr)
 {
+    int preverrcnt = errcnt;
     size_t bytesToFill = data.size() > COMMAND_SIZE ? COMMAND_SIZE : data.size();
     unsigned char writeBuffer[COMMAND_SIZE] = {0x00};  // It is important to initialize the array in this manner, so that unused indexes are filled with zeros!
     for (size_t i = 0; i < bytesToFill; ++i) {
@@ -90,6 +91,10 @@ std::vector<uint8_t> MCP2210::hidTransfer(const std::vector<uint8_t> &data, int 
     std::vector<uint8_t> retdata(bytesRead);
     for (int i = 0; i < bytesRead; ++i) {
         retdata[i] = readBuffer[i];
+    }
+    if (errcnt == preverrcnt && bytesRead < static_cast<int>(COMMAND_SIZE)) {  // This additional verification only makes sense if the error count does not increase
+        errcnt += 1;
+        errstr += "Received incomplete response to HID command.\n";
     }
     return retdata;
 }
