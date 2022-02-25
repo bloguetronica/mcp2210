@@ -75,22 +75,22 @@ std::vector<uint8_t> MCP2210::hidTransfer(const std::vector<uint8_t> &data, int 
 {
     int preverrcnt = errcnt;
     size_t bytesToFill = data.size() > COMMAND_SIZE ? COMMAND_SIZE : data.size();
-    unsigned char writeBuffer[COMMAND_SIZE] = {0x00};  // It is important to initialize the array in this manner, so that unused indexes are filled with zeros!
+    unsigned char commandBuffer[COMMAND_SIZE] = {0x00};  // It is important to initialize the array in this manner, so that unused indexes are filled with zeros!
     for (size_t i = 0; i < bytesToFill; ++i) {
-        writeBuffer[i] = data[i];
+        commandBuffer[i] = data[i];
     }
 #if LIBUSB_API_VERSION >= 0x01000105
-    interruptTransfer(EPOUT, writeBuffer, static_cast<int>(COMMAND_SIZE), nullptr, errcnt, errstr);
+    interruptTransfer(EPOUT, commandBuffer, static_cast<int>(COMMAND_SIZE), nullptr, errcnt, errstr);
 #else
     int bytesWritten;
-    interruptTransfer(EPOUT, writeBuffer, static_cast<int>(COMMAND_SIZE), &bytesWritten, errcnt, errstr);
+    interruptTransfer(EPOUT, commandBuffer, static_cast<int>(COMMAND_SIZE), &bytesWritten, errcnt, errstr);
 #endif
-    unsigned char readBuffer[COMMAND_SIZE];
+    unsigned char responseBuffer[COMMAND_SIZE];
     int bytesRead = 0;  // Important!
-    interruptTransfer(EPIN, readBuffer, static_cast<int>(COMMAND_SIZE), &bytesRead, errcnt, errstr);
+    interruptTransfer(EPIN, responseBuffer, static_cast<int>(COMMAND_SIZE), &bytesRead, errcnt, errstr);
     std::vector<uint8_t> retdata(bytesRead);
     for (int i = 0; i < bytesRead; ++i) {
-        retdata[i] = readBuffer[i];
+        retdata[i] = responseBuffer[i];
     }
     if (errcnt == preverrcnt && bytesRead < static_cast<int>(COMMAND_SIZE)) {  // This additional verification only makes sense if the error count does not increase
         errcnt += 1;
