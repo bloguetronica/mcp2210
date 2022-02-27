@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.3.0
+/* MCP2210 class - Version 0.3.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -190,7 +190,7 @@ std::vector<std::string> MCP2210::listDevices(uint16_t vid, uint16_t pid, int &e
             errstr += "Failed to retrieve a list of devices.\n";
         } else {
             for (ssize_t i = 0; i < devlist; ++i) {  // Run through all listed devices
-                struct libusb_device_descriptor desc;
+                libusb_device_descriptor desc;
                 if (libusb_get_device_descriptor(devs[i], &desc) == 0 && desc.idVendor == vid && desc.idProduct == pid) {  // If the device descriptor is retrieved, and both VID and PID correspond to the respective given values
                     libusb_device_handle *handle;
                     if (libusb_open(devs[i], &handle) == 0) {  // Open the listed device. If successfull
