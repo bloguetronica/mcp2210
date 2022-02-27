@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.2.0
+/* MCP2210 class - Version 0.3.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -23,7 +23,6 @@
 
 // Includes
 #include <cstdint>
-#include <list>
 #include <string>
 #include <vector>
 #include <libusb-1.0/libusb.h>
@@ -60,7 +59,7 @@ public:
     void interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr);
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
 
-    static std::list<std::string> listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr);
+    static std::vector<std::string> listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr);
 };
 
 #endif  // MCP2210_H

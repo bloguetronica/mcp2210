@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.2.0
+/* MCP2210 class - Version 0.3.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -175,9 +175,9 @@ int MCP2210::open(uint16_t vid, uint16_t pid, const std::string &serial)
 }
 
 // Helper function to list devices
-std::list<std::string> MCP2210::listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr)
+std::vector<std::string> MCP2210::listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr)
 {
-    std::list<std::string> devices;
+    std::vector<std::string> devices;
     libusb_context *context;
     if (libusb_init(&context) != 0) {  // Initialize libusb. In case of failure
         errcnt += 1;
