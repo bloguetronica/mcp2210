@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.4.1
+/* MCP2210 class - Version 0.4.2
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -84,7 +84,7 @@ void MCP2210::close()
 // Configures SPI transfer settings
 uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command{
+    std::vector<uint8_t> command = {
         SET_SPI_SETTINGS, 0x00, 0x00, 0x00,            // Header
         static_cast<uint8_t>(settings.bitrate),        // Bit rate
         static_cast<uint8_t>(settings.bitrate >> 8),
@@ -106,12 +106,7 @@ uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, 
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     uint8_t retval = UNDEFINED;
     if (errcnt == preverrcnt) {
-        if (response[0] != SET_SPI_SETTINGS) {
-            ++errcnt;
-            errstr += "Received mismatched response to HID command.\n";
-        } else {
-            retval = response[1];
-        }
+        retval = response[1];
     }
     return retval;
 }
@@ -119,26 +114,21 @@ uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, 
 // Returns applied SPI transfer settings
 MCP2210::SPISettings MCP2210::getSPISettings(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command{
+    std::vector<uint8_t> command = {
         GET_SPI_SETTINGS
     };
     int preverrcnt = errcnt;
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     SPISettings settings;
     if (errcnt == preverrcnt) {
-        if (response[0] != GET_SPI_SETTINGS) {
-            ++errcnt;
-            errstr += "Received mismatched response to HID command.\n";
-        } else {
-            settings.nbytes = static_cast<uint16_t>(response[18] | response[19] << 8);                                         // Number of bytes per SPI transfer corresponds to bytes 18 and 19 (little-endian conversion)
-            settings.bitrate = static_cast<uint32_t>(response[4] | response[5] << 8 | response[6] << 16 | response[7] << 24);  // Bit rate corresponds to bytes 4, 5, 6 and 7 (little-endian conversion)
-            settings.mode = response[20];                                                                                      // SPI mode corresponds to byte 20
-            settings.actcs = response[10];                                                                                     // Active chip select value corresponds to byte 10
-            settings.idlcs = response[8];                                                                                      // Idle chip select value corresponds to byte 8
-            settings.csdtdly = static_cast<uint16_t>(response[12] | response[13] << 8);                                        // Chip select to data corresponds to bytes 12 and 13 (little-endian conversion)
-            settings.dtcsdly = static_cast<uint16_t>(response[14] | response[15] << 8);                                        // Data to chip select delay corresponds to bytes 14 and 15 (little-endian conversion)
-            settings.itbytdly = static_cast<uint16_t>(response[16] | response[17] << 8);                                       // Inter-byte delay corresponds to bytes 16 and 17 (little-endian conversion)
-        }
+        settings.nbytes = static_cast<uint16_t>(response[19] << 8 | response[18]);                                         // Number of bytes per SPI transfer corresponds to bytes 18 and 19 (little-endian conversion)
+        settings.bitrate = static_cast<uint32_t>(response[7] << 24 | response[6] << 16 | response[5] << 8 | response[4]);  // Bit rate corresponds to bytes 4, 5, 6 and 7 (little-endian conversion)
+        settings.mode = response[20];                                                                                      // SPI mode corresponds to byte 20
+        settings.actcs = response[10];                                                                                     // Active chip select value corresponds to byte 10
+        settings.idlcs = response[8];                                                                                      // Idle chip select value corresponds to byte 8
+        settings.csdtdly = static_cast<uint16_t>(response[13] << 8 | response[12]);                                        // Chip select to data corresponds to bytes 12 and 13 (little-endian conversion)
+        settings.dtcsdly = static_cast<uint16_t>(response[15] << 8 | response[14]);                                        // Data to chip select delay corresponds to bytes 14 and 15 (little-endian conversion)
+        settings.itbytdly = static_cast<uint16_t>(response[17] << 8 | response[16]);                                       // Inter-byte delay corresponds to bytes 16 and 17 (little-endian conversion)
     }
     return settings;
 }
@@ -166,9 +156,9 @@ std::vector<uint8_t> MCP2210::hidTransfer(const std::vector<uint8_t> &data, int 
     for (int i = 0; i < bytesRead; ++i) {
         retdata[i] = responseBuffer[i];
     }
-    if (errcnt == preverrcnt && bytesRead < static_cast<int>(COMMAND_SIZE)) {  // This additional verification only makes sense if the error count does not increase
+    if (errcnt == preverrcnt && (bytesRead < static_cast<int>(COMMAND_SIZE) || responseBuffer[0] != commandBuffer[0])) {  // This additional verification only makes sense if the error count does not increase
         ++errcnt;
-        errstr += "Received incomplete response to HID command.\n";
+        errstr += "Received invalid response to HID command.\n";
     }
     return retdata;
 }
