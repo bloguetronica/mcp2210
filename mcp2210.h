@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.4.0
+/* MCP2210 class - Version 0.4.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -64,11 +64,63 @@ public:
     static const uint8_t UNDEFINED = 0xFF;      // Undefined response (error)
 
     // The following values are applicable to SPISettings/configureSPISettings()/getSPISettings()
-    static const uint32_t BRT3M = 3000000;  // Value corresponding to a bit rate of 3Mb
-    static const uint8_t SPIMODE0 = 0x00;   // Value corresponding to SPI mode 0
-    static const uint8_t SPIMODE1 = 0x01;   // Value corresponding to SPI mode 1
-    static const uint8_t SPIMODE2 = 0x02;   // Value corresponding to SPI mode 2
-    static const uint8_t SPIMODE3 = 0x03;   // Value corresponding to SPI mode 3
+    static const uint32_t BRT1K464 = 1464;    // Value corresponding to a bit rate of 1.464Kb
+    static const uint32_t BRT1K5 = 1500;      // Value corresponding to a bit rate of 1.5Kb
+    static const uint32_t BRT1K875 = 1875;    // Value corresponding to a bit rate of 1.875Kb
+    static const uint32_t BRT2K5 = 2500;      // Value corresponding to a bit rate of 2.5Kb
+    static const uint32_t BRT3K = 3000;       // Value corresponding to a bit rate of 3Kb
+    static const uint32_t BRT3K125 = 3125;    // Value corresponding to a bit rate of 3.125Kb
+    static const uint32_t BRT3K75 = 3750;     // Value corresponding to a bit rate of 3.75Kb
+    static const uint32_t BRT5K = 5000;       // Value corresponding to a bit rate of 5Kb
+    static const uint32_t BRT6K = 6000;       // Value corresponding to a bit rate of 6Kb
+    static const uint32_t BRT6K25 = 6250;     // Value corresponding to a bit rate of 6.25Kb
+    static const uint32_t BRT7K5 = 7500;      // Value corresponding to a bit rate of 7.5Kb
+    static const uint32_t BRT9K375 = 9375;    // Value corresponding to a bit rate of 9.375Kb
+    static const uint32_t BRT10K = 10000;     // Value corresponding to a bit rate of 10Kb
+    static const uint32_t BRT12K = 12000;     // Value corresponding to a bit rate of 12Kb
+    static const uint32_t BRT12K5 = 12500;    // Value corresponding to a bit rate of 12.5Kb
+    static const uint32_t BRT15K = 15000;     // Value corresponding to a bit rate of 15Kb
+    static const uint32_t BRT15K625 = 15625;  // Value corresponding to a bit rate of 15.625Kb
+    static const uint32_t BRT18K75 = 18750;   // Value corresponding to a bit rate of 18.750Kb
+    static const uint32_t BRT20K = 20000;     // Value corresponding to a bit rate of 20Kb
+    static const uint32_t BRT24K = 24000;     // Value corresponding to a bit rate of 24Kb
+    static const uint32_t BRT25K = 25000;     // Value corresponding to a bit rate of 25Kb
+    static const uint32_t BRT30K = 30000;     // Value corresponding to a bit rate of 30Kb
+    static const uint32_t BRT31K25 = 31250;   // Value corresponding to a bit rate of 31.25Kb
+    static const uint32_t BRT37K5 = 37500;    // Value corresponding to a bit rate of 37.5Kb
+    static const uint32_t BRT40K = 40000;     // Value corresponding to a bit rate of 40Kb
+    static const uint32_t BRT46K875 = 46875;  // Value corresponding to a bit rate of 46.875Kb
+    static const uint32_t BRT48K = 48000;     // Value corresponding to a bit rate of 48Kb
+    static const uint32_t BRT50K = 50000;     // Value corresponding to a bit rate of 50Kb
+    static const uint32_t BRT60K = 60000;     // Value corresponding to a bit rate of 60Kb
+    static const uint32_t BRT62K5 = 62500;    // Value corresponding to a bit rate of 62.5Kb
+    static const uint32_t BRT75K = 75000;     // Value corresponding to a bit rate of 75Kb
+    static const uint32_t BRT80K = 80000;     // Value corresponding to a bit rate of 80Kb
+    static const uint32_t BRT93K75 = 93750;   // Value corresponding to a bit rate of 93.75Kb
+    static const uint32_t BRT100K = 100000;   // Value corresponding to a bit rate of 100Kb
+    static const uint32_t BRT120K = 120000;   // Value corresponding to a bit rate of 120Kb
+    static const uint32_t BRT125K = 125000;   // Value corresponding to a bit rate of 125Kb
+    static const uint32_t BRT150K = 150000;   // Value corresponding to a bit rate of 150Kb
+    static const uint32_t BRT187K5 = 187500;  // Value corresponding to a bit rate of 187.5Kb
+    static const uint32_t BRT200K = 200000;   // Value corresponding to a bit rate of 200Kb
+    static const uint32_t BRT240K = 240000;   // Value corresponding to a bit rate of 240Kb
+    static const uint32_t BRT250K = 250000;   // Value corresponding to a bit rate of 250Kb
+    static const uint32_t BRT300K = 300000;   // Value corresponding to a bit rate of 300Kb
+    static const uint32_t BRT375K = 375000;   // Value corresponding to a bit rate of 375Kb
+    static const uint32_t BRT400K = 400000;   // Value corresponding to a bit rate of 400Kb
+    static const uint32_t BRT500K = 500000;   // Value corresponding to a bit rate of 500Kb
+    static const uint32_t BRT600K = 600000;   // Value corresponding to a bit rate of 600Kb
+    static const uint32_t BRT750K = 750000;   // Value corresponding to a bit rate of 750Kb
+    static const uint32_t BRT1M = 1000000;    // Value corresponding to a bit rate of 1Mb
+    static const uint32_t BRT1M2 = 1200000;   // Value corresponding to a bit rate of 1.2Mb
+    static const uint32_t BRT1M5 = 1500000;   // Value corresponding to a bit rate of 1.5Mb
+    static const uint32_t BRT2M = 2000000;    // Value corresponding to a bit rate of 2Mb
+    static const uint32_t BRT3M = 3000000;    // Value corresponding to a bit rate of 3Mb
+    static const uint32_t BRT12M = 12000000;  // Value corresponding to a bit rate of 12Mb
+    static const uint8_t SPIMODE0 = 0x00;     // Value corresponding to SPI mode 0
+    static const uint8_t SPIMODE1 = 0x01;     // Value corresponding to SPI mode 1
+    static const uint8_t SPIMODE2 = 0x02;     // Value corresponding to SPI mode 2
+    static const uint8_t SPIMODE3 = 0x03;     // Value corresponding to SPI mode 3
 
     struct SPISettings {
         uint16_t nbytes;    // Number of bytes per SPI transaction
