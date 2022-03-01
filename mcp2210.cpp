@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.5.0
+/* MCP2210 class - Version 0.6.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -64,6 +64,19 @@ void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int l
     }
 }
 
+// "Equal to" operator for ChipSettings
+bool MCP2210::ChipSettings::operator ==(const MCP2210::ChipSettings &other) const
+{
+    return gp0 == other.gp0 && gp1 == other.gp1 && gp2 == other.gp2 && gp3 == other.gp3 && gp4 == other.gp4 && gp5 == other.gp5 && gp6 == other.gp6 && gp7 == other.gp7 && gpdir == other.gpdir && gpout == other.gpout && rmwakeup == other.rmwakeup && intmode == other.intmode && nrelspi == other.nrelspi;
+}
+
+// "Not equal to" operator for ChipSettings
+bool MCP2210::ChipSettings::operator !=(const MCP2210::ChipSettings &other) const
+{
+    return !(operator ==(other));
+}
+
+
 // "Equal to" operator for SPISettings
 bool MCP2210::SPISettings::operator ==(const MCP2210::SPISettings &other) const
 {
@@ -115,26 +128,23 @@ void MCP2210::close()
     }
 }
 
-// Configures SPI transfer settings
-uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr)
+// Configures volatile chip settings
+uint8_t MCP2210::configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
-        SET_SPI_SETTINGS, 0x00, 0x00, 0x00,            // Header
-        static_cast<uint8_t>(settings.bitrate),        // Bit rate
-        static_cast<uint8_t>(settings.bitrate >> 8),
-        static_cast<uint8_t>(settings.bitrate >> 16),
-        static_cast<uint8_t>(settings.bitrate >> 24),
-        settings.idlcs, 0x00,                          // Idle chip select
-        settings.actcs, 0x00,                          // Active chip select
-        static_cast<uint8_t>(settings.csdtdly),        // Chip select to data delay
-        static_cast<uint8_t>(settings.csdtdly >> 8),
-        static_cast<uint8_t>(settings.dtcsdly),        // Data to chip select delay
-        static_cast<uint8_t>(settings.dtcsdly >> 8),
-        static_cast<uint8_t>(settings.itbytdly),       // Inter-byte delay
-        static_cast<uint8_t>(settings.itbytdly >> 8),
-        static_cast<uint8_t>(settings.nbytes),         // Number of bytes per SPI transaction
-        static_cast<uint8_t>(settings.nbytes >> 8),
-        settings.mode                                  // SPI mode
+        SET_CHIP_SETTINGS, 0x00, 0x00, 0x00,                                                              // Header
+        settings.gp0,                                                                                     // GP0 pin configuration
+        settings.gp1,                                                                                     // GP1 pin configuration
+        settings.gp2,                                                                                     // GP2 pin configuration
+        settings.gp3,                                                                                     // GP3 pin configuration
+        settings.gp4,                                                                                     // GP4 pin configuration
+        settings.gp5,                                                                                     // GP5 pin configuration
+        settings.gp6,                                                                                     // GP6 pin configuration
+        settings.gp7,                                                                                     // GP7 pin configuration
+        settings.gp8,                                                                                     // GP8 pin configuration
+        settings.gpout, 0x00,                                                                             // Default GPIO output
+        settings.gpdir, 0x00,                                                                             // Default GPIO direction
+        static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi)  // Other chip settings
     };
     int preverrcnt = errcnt;
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -143,6 +153,58 @@ uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, 
         retval = response[1];
     }
     return retval;
+}
+
+// Configures SPI transfer settings
+uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        SET_SPI_SETTINGS, 0x00, 0x00, 0x00,                                                          // Header
+        static_cast<uint8_t>(settings.bitrate), static_cast<uint8_t>(settings.bitrate >> 8),         // Bit rate
+        static_cast<uint8_t>(settings.bitrate >> 16), static_cast<uint8_t>(settings.bitrate >> 24),
+        settings.idlcs, 0x00,                                                                        // Idle chip select
+        settings.actcs, 0x00,                                                                        // Active chip select
+        static_cast<uint8_t>(settings.csdtdly), static_cast<uint8_t>(settings.csdtdly >> 8),         // Chip select to data delay
+        static_cast<uint8_t>(settings.dtcsdly), static_cast<uint8_t>(settings.dtcsdly >> 8),         // Data to chip select delay
+        static_cast<uint8_t>(settings.itbytdly), static_cast<uint8_t>(settings.itbytdly >> 8),       // Inter-byte delay
+        static_cast<uint8_t>(settings.nbytes), static_cast<uint8_t>(settings.nbytes >> 8),           // Number of bytes per SPI transaction
+        settings.mode                                                                                // SPI mode
+    };
+    int preverrcnt = errcnt;
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    uint8_t retval = UNDEFINED;
+    if (errcnt == preverrcnt) {
+        retval = response[1];
+    }
+    return retval;
+}
+
+// Returns applied chip settings
+MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_CHIP_SETTINGS
+    };
+    int preverrcnt = errcnt;
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    ChipSettings settings;
+    if (errcnt == preverrcnt) {
+        settings.gp0 = response[4];                                         // GP0 pin configuration corresponds to byte 4
+        settings.gp1 = response[5];                                         // GP1 pin configuration corresponds to byte 5
+        settings.gp2 = response[6];                                         // GP2 pin configuration corresponds to byte 6
+        settings.gp3 = response[7];                                         // GP3 pin configuration corresponds to byte 7
+        settings.gp4 = response[8];                                         // GP4 pin configuration corresponds to byte 8
+        settings.gp5 = response[9];                                         // GP5 pin configuration corresponds to byte 9
+        settings.gp6 = response[10];                                        // GP6 pin configuration corresponds to byte 10
+        settings.gp7 = response[11];                                        // GP7 pin configuration corresponds to byte 11
+        settings.gp8 = response[12];                                        // GP8 pin configuration corresponds to byte 12
+        settings.gpdir = response[15];                                      // Default GPIO direction corresponds to bytes 15 and 16
+        settings.gpout = response[13];                                      // Default GPIO output corresponds to bytes 13 and 14
+        settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
+        settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // SPI mode corresponds to bits 3:1 of byte 17
+        settings.nrelspi = (0x01 & response[17]) != 0x00;                   // Active chip select value corresponds to bit 0 of byte 17
+    }
+    return settings;
 }
 
 // Returns applied SPI transfer settings
@@ -156,10 +218,10 @@ MCP2210::SPISettings MCP2210::getSPISettings(int &errcnt, std::string &errstr)
     SPISettings settings;
     if (errcnt == preverrcnt) {
         settings.nbytes = static_cast<uint16_t>(response[19] << 8 | response[18]);                                         // Number of bytes per SPI transfer corresponds to bytes 18 and 19 (little-endian conversion)
-        settings.bitrate = static_cast<uint32_t>(response[7] << 24 | response[6] << 16 | response[5] << 8 | response[4]);  // Bit rate corresponds to bytes 4, 5, 6 and 7 (little-endian conversion)
+        settings.bitrate = static_cast<uint32_t>(response[7] << 24 | response[6] << 16 | response[5] << 8 | response[4]);  // Bit rate corresponds to bytes 4 to 7 (little-endian conversion)
         settings.mode = response[20];                                                                                      // SPI mode corresponds to byte 20
-        settings.actcs = response[10];                                                                                     // Active chip select value corresponds to byte 10
-        settings.idlcs = response[8];                                                                                      // Idle chip select value corresponds to byte 8
+        settings.actcs = response[10];                                                                                     // Active chip select value corresponds to bytes 10 and 11
+        settings.idlcs = response[8];                                                                                      // Idle chip select value corresponds to bytes 8 and 9
         settings.csdtdly = static_cast<uint16_t>(response[13] << 8 | response[12]);                                        // Chip select to data corresponds to bytes 12 and 13 (little-endian conversion)
         settings.dtcsdly = static_cast<uint16_t>(response[15] << 8 | response[14]);                                        // Data to chip select delay corresponds to bytes 14 and 15 (little-endian conversion)
         settings.itbytdly = static_cast<uint16_t>(response[17] << 8 | response[16]);                                       // Inter-byte delay corresponds to bytes 16 and 17 (little-endian conversion)
