@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.4.2
+/* MCP2210 class - Version 0.5.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -34,6 +34,8 @@ private:
     libusb_device_handle *handle_;
     bool disconnected_, kernelWasAttached_;
 
+    void interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr);
+
 public:
     // Class definitions
     static const uint16_t VID = 0x04D8;    // Default USB vendor ID
@@ -44,8 +46,6 @@ public:
     static const int ERROR_BUSY = 3;       // Returned by open() if the device is already in use
 
     // Transfer specific definitions
-    static const uint8_t EPIN = 0x81;       // Address of endpoint assuming the IN direction
-    static const uint8_t EPOUT = 0x01;      // Address of endpoint assuming the OUT direction
     static const size_t COMMAND_SIZE = 64;  // HID command size
 
     // HID commands
@@ -146,7 +146,6 @@ public:
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     SPISettings getSPISettings(int &errcnt, std::string &errstr);
     std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);
-    void interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr);
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
 
     static std::vector<std::string> listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr);

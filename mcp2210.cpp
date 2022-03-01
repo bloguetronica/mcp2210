@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.4.2
+/* MCP2210 class - Version 0.5.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -28,7 +28,41 @@ extern "C" {
 }
 
 // Definitions
+const uint8_t EPIN = 0x81;            // Address of endpoint assuming the IN direction
+const uint8_t EPOUT = 0x01;           // Address of endpoint assuming the OUT direction
 const unsigned int TR_TIMEOUT = 500;  // Transfer timeout in milliseconds
+
+// Safe interrupt transfer
+void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr)
+{
+    if (!isOpen()) {
+        ++errcnt;
+        errstr += "In interruptTransfer(): device is not open.\n";  // Program logic error
+    } else {
+        int result = libusb_interrupt_transfer(handle_, endpointAddr, data, length, transferred, TR_TIMEOUT);
+        if (result != 0 || (transferred != nullptr && *transferred != length)) {  // The number of transferred bytes is also verified, as long as a valid (non-null) pointer is passed via "transferred"
+            ++errcnt;
+            std::ostringstream stream;
+            if (endpointAddr < 0x80) {
+                stream << "Failed interrupt OUT transfer to endpoint "
+                       << (0x0F & endpointAddr)
+                       << " (address 0x"
+                       << std::hex << std::setfill ('0') << std::setw(2) << static_cast<int>(endpointAddr)
+                       << ")." << std::endl;
+            } else {
+                stream << "Failed interrupt IN transfer from endpoint "
+                       << (0x0F & endpointAddr)
+                       << " (address 0x"
+                       << std::hex << std::setfill ('0') << std::setw(2) << static_cast<int>(endpointAddr)
+                       << ")." << std::endl;
+            }
+            errstr += stream.str();
+            if (result == LIBUSB_ERROR_NO_DEVICE || result == LIBUSB_ERROR_IO) {  // Note that libusb_interrupt_transfer() may return "LIBUSB_ERROR_IO" [-1] on device disconnect
+                disconnected_ = true;  // This reports that the device has been disconnected
+            }
+        }
+    }
+}
 
 // "Equal to" operator for SPISettings
 bool MCP2210::SPISettings::operator ==(const MCP2210::SPISettings &other) const
@@ -161,38 +195,6 @@ std::vector<uint8_t> MCP2210::hidTransfer(const std::vector<uint8_t> &data, int 
         errstr += "Received invalid response to HID command.\n";
     }
     return retdata;
-}
-
-// Safe interrupt transfer
-void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr)
-{
-    if (!isOpen()) {
-        ++errcnt;
-        errstr += "In interruptTransfer(): device is not open.\n";  // Program logic error
-    } else {
-        int result = libusb_interrupt_transfer(handle_, endpointAddr, data, length, transferred, TR_TIMEOUT);
-        if (result != 0 || (transferred != nullptr && *transferred != length)) {  // The number of transferred bytes is also verified, as long as a valid (non-null) pointer is passed via "transferred"
-            ++errcnt;
-            std::ostringstream stream;
-            if (endpointAddr < 0x80) {
-                stream << "Failed interrupt OUT transfer to endpoint "
-                       << (0x0F & endpointAddr)
-                       << " (address 0x"
-                       << std::hex << std::setfill ('0') << std::setw(2) << static_cast<int>(endpointAddr)
-                       << ")." << std::endl;
-            } else {
-                stream << "Failed interrupt IN transfer from endpoint "
-                       << (0x0F & endpointAddr)
-                       << " (address 0x"
-                       << std::hex << std::setfill ('0') << std::setw(2) << static_cast<int>(endpointAddr)
-                       << ")." << std::endl;
-            }
-            errstr += stream.str();
-            if (result == LIBUSB_ERROR_NO_DEVICE || result == LIBUSB_ERROR_IO) {  // Note that libusb_interrupt_transfer() may return "LIBUSB_ERROR_IO" [-1] on device disconnect
-                disconnected_ = true;  // This reports that the device has been disconnected
-            }
-        }
-    }
 }
 
 // Opens the device having the given VID, PID and, optionally, the given serial number, and assigns its handle
