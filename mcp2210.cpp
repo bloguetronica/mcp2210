@@ -32,7 +32,7 @@ const uint8_t EPIN = 0x81;            // Address of endpoint assuming the IN dir
 const uint8_t EPOUT = 0x01;           // Address of endpoint assuming the OUT direction
 const unsigned int TR_TIMEOUT = 500;  // Transfer timeout in milliseconds
 
-// Safe interrupt transfer
+// Private function that is used to perform interrupt transfers
 void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr)
 {
     if (!isOpen()) {
