@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.6.0
+/* MCP2210 class - Version 0.6.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -67,7 +67,7 @@ void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int l
 // "Equal to" operator for ChipSettings
 bool MCP2210::ChipSettings::operator ==(const MCP2210::ChipSettings &other) const
 {
-    return gp0 == other.gp0 && gp1 == other.gp1 && gp2 == other.gp2 && gp3 == other.gp3 && gp4 == other.gp4 && gp5 == other.gp5 && gp6 == other.gp6 && gp7 == other.gp7 && gpdir == other.gpdir && gpout == other.gpout && rmwakeup == other.rmwakeup && intmode == other.intmode && nrelspi == other.nrelspi;
+    return gp0 == other.gp0 && gp1 == other.gp1 && gp2 == other.gp2 && gp3 == other.gp3 && gp4 == other.gp4 && gp5 == other.gp5 && gp6 == other.gp6 && gp7 == other.gp7 && gp8 == other.gp8 && gpdir == other.gpdir && gpout == other.gpout && rmwakeup == other.rmwakeup && intmode == other.intmode && nrelspi == other.nrelspi;
 }
 
 // "Not equal to" operator for ChipSettings
@@ -201,8 +201,8 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
         settings.gpdir = response[15];                                      // Default GPIO direction corresponds to bytes 15 and 16
         settings.gpout = response[13];                                      // Default GPIO output corresponds to bytes 13 and 14
         settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
-        settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // SPI mode corresponds to bits 3:1 of byte 17
-        settings.nrelspi = (0x01 & response[17]) != 0x00;                   // Active chip select value corresponds to bit 0 of byte 17
+        settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
+        settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
     }
     return settings;
 }
