@@ -38,14 +38,12 @@ private:
 
 public:
     // Class definitions
-    static const uint16_t VID = 0x04D8;    // Default USB vendor ID
-    static const uint16_t PID = 0x00DE;    // Default USB product ID
-    static const int SUCCESS = 0;          // Returned by open() if successful
-    static const int ERROR_INIT = 1;       // Returned by open() in case of a libusb initialization failure
-    static const int ERROR_NOT_FOUND = 2;  // Returned by open() if the device was not found
-    static const int ERROR_BUSY = 3;       // Returned by open() if the device is already in use
-
-    // Transfer specific definitions
+    static const uint16_t VID = 0x04D8;     // Default USB vendor ID
+    static const uint16_t PID = 0x00DE;     // Default USB product ID
+    static const int SUCCESS = 0;           // Returned by open() if successful
+    static const int ERROR_INIT = 1;        // Returned by open() in case of a libusb initialization failure
+    static const int ERROR_NOT_FOUND = 2;   // Returned by open() if the device was not found
+    static const int ERROR_BUSY = 3;        // Returned by open() if the device is already in use
     static const size_t COMMAND_SIZE = 64;  // HID command size
 
     // HID commands
