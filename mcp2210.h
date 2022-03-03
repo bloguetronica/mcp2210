@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.6.1
+/* MCP2210 class - Version 0.7.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -51,6 +51,8 @@ public:
     static const uint8_t SET_CHIP_SETTINGS = 0x21;  // Set chip settings
     static const uint8_t SET_SPI_SETTINGS = 0x40;   // Set SPI transfer settings
     static const uint8_t GET_SPI_SETTINGS = 0x41;   // Get SPI transfer settings
+    static const uint8_t READ_EEPROM = 0x50;        // Read EEPROM
+    static const uint8_t WRITE_EEPROM = 0x51;       // Write EEPROM
 
     // HID command responses
     static const uint8_t COMPLETED = 0x00;      // Command completed successfully
@@ -177,6 +179,8 @@ public:
     SPISettings getSPISettings(int &errcnt, std::string &errstr);
     std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
+    uint8_t readEEPROM(uint8_t address, int &errcnt, std::string &errstr);
+    uint8_t writeEEPROM(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
 
     static std::vector<std::string> listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr);
 };

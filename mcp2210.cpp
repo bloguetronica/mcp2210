@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.6.1
+/* MCP2210 class - Version 0.7.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -148,11 +148,7 @@ uint8_t MCP2210::configureChipSettings(const ChipSettings &settings, int &errcnt
     };
     int preverrcnt = errcnt;
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    uint8_t retval = UNDEFINED;
-    if (errcnt == preverrcnt) {
-        retval = response[1];
-    }
-    return retval;
+    return errcnt == preverrcnt ? response[1] : UNDEFINED;
 }
 
 // Configures SPI transfer settings
@@ -172,11 +168,7 @@ uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, 
     };
     int preverrcnt = errcnt;
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    uint8_t retval = UNDEFINED;
-    if (errcnt == preverrcnt) {
-        retval = response[1];
-    }
-    return retval;
+    return errcnt == preverrcnt ? response[1] : UNDEFINED;
 }
 
 // Returns applied chip settings
@@ -300,6 +292,31 @@ int MCP2210::open(uint16_t vid, uint16_t pid, const std::string &serial)
         }
     }
     return retval;
+}
+
+// Reads a byte from the given EEPROM address
+uint8_t MCP2210::readEEPROM(uint8_t address, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        READ_EEPROM,  // Header
+        address       // Address to be read
+    };
+    int preverrcnt = errcnt;
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return errcnt == preverrcnt ? response[3] : 0x00;
+}
+
+// Writes a byte to a given EEPROM address
+uint8_t MCP2210::writeEEPROM(uint8_t address, uint8_t value, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        WRITE_EEPROM,  // Header
+        address,       // Address to be written
+        value          // Value
+    };
+    int preverrcnt = errcnt;
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return errcnt == preverrcnt ? response[1] : UNDEFINED;
 }
 
 // Helper function to list devices
