@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.8.0
+/* MCP2210 class - Version 0.8.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -306,14 +306,14 @@ uint8_t MCP2210::readEEPROMByte(uint8_t address, int &errcnt, std::string &errst
     return errcnt == preverrcnt ? response[3] : 0x00;
 }
 
-// Reads the EEPROM within a specified range, returning a vector
-// In an error occurs, the size of the vector will be reduced
+// Reads the EEPROM within the specified range, returning a vector
+// In an error occurs, the size of the vector will be smaller than expected
 std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> values;
     if (begin > end) {
         ++errcnt;
-        errstr += "In readEEPROMRange(): first address of range cannot be greater than last address.\n";  // Program logic error
+        errstr += "In readEEPROMRange(): the first address cannot be greater than the last address.\n";  // Program logic error
     } else {
         for (uint8_t i = begin; i <= end; ++i) {
             int preverrcnt = errcnt;
@@ -340,16 +340,16 @@ uint8_t MCP2210::writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, st
     return errcnt == preverrcnt ? response[1] : UNDEFINED;
 }
 
-// Writes over the EEPROM in a given range, based on a vector
+// Writes over the EEPROM, within the specified range and based on the given vector
 uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr)
 {
     uint8_t retval = UNDEFINED;
     if (begin > end) {
         ++errcnt;
-        errstr += "In writeEEPROMRange(): first address of range cannot be greater than last address.\n";  // Program logic error
+        errstr += "In writeEEPROMRange(): the first address cannot be greater than the last address.\n";  // Program logic error
     } else if (static_cast<int>(values.size()) != end - begin + 1) {
         ++errcnt;
-        errstr += "In writeEEPROMRange(): vector size does not match the range size.\n";  // Program logic error
+        errstr += "In writeEEPROMRange(): vector size does not match range size.\n";  // Program logic error
     } else {
         for (uint8_t i = begin; i <= end; ++i) {
             int preverrcnt = errcnt;
