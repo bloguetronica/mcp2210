@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.8.1
+/* MCP2210 class - Version 0.8.2
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -315,9 +315,9 @@ std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &e
         ++errcnt;
         errstr += "In readEEPROMRange(): the first address cannot be greater than the last address.\n";  // Program logic error
     } else {
-        for (uint8_t i = begin; i <= end; ++i) {
+        for (size_t i = begin; i <= end; ++i) {
             int preverrcnt = errcnt;
-            uint8_t value = readEEPROMByte(i, errcnt, errstr);
+            uint8_t value = readEEPROMByte(static_cast<uint8_t>(i), errcnt, errstr);
             if (errcnt > preverrcnt) {  // If an error occurs
                 break;  // Abort
             }
@@ -351,9 +351,9 @@ uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<
         ++errcnt;
         errstr += "In writeEEPROMRange(): vector size does not match range size.\n";  // Program logic error
     } else {
-        for (uint8_t i = begin; i <= end; ++i) {
+        for (size_t i = 0; i < values.size(); ++i) {
             int preverrcnt = errcnt;
-            retval = writeEEPROMByte(i, values[i], errcnt, errstr);
+            retval = writeEEPROMByte(static_cast<uint8_t>(begin + i), values[i], errcnt, errstr);
             if (errcnt > preverrcnt || retval != COMPLETED) {  // If an error occurs (the condition "errcnt > preverrcnt" is actually redundant, since writeEEPROMByte() returns UNDEFINED in such case, but nonetheless is here for clarity and as a failsafe against eventual modifications)
                 break;  // Abort
             }
