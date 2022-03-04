@@ -11,7 +11,7 @@
    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
    License for more details.
 
-   You should have receivehttps://github.com/bloguetronica/cp2130-comd a copy of the GNU Lesser General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
 
