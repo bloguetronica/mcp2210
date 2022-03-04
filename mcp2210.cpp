@@ -295,7 +295,7 @@ int MCP2210::open(uint16_t vid, uint16_t pid, const std::string &serial)
 }
 
 // Reads a byte from the given EEPROM address
-uint8_t MCP2210::readEEPROM(uint8_t address, int &errcnt, std::string &errstr)
+uint8_t MCP2210::readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
         READ_EEPROM,  // Header
@@ -307,7 +307,7 @@ uint8_t MCP2210::readEEPROM(uint8_t address, int &errcnt, std::string &errstr)
 }
 
 // Writes a byte to a given EEPROM address
-uint8_t MCP2210::writeEEPROM(uint8_t address, uint8_t value, int &errcnt, std::string &errstr)
+uint8_t MCP2210::writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
         WRITE_EEPROM,  // Header

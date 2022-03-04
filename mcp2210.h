@@ -179,8 +179,8 @@ public:
     SPISettings getSPISettings(int &errcnt, std::string &errstr);
     std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
-    uint8_t readEEPROM(uint8_t address, int &errcnt, std::string &errstr);
-    uint8_t writeEEPROM(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
+    uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
+    uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
 
     static std::vector<std::string> listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr);
 };
