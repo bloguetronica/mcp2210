@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.8.2
+/* MCP2210 class - Version 0.9.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -66,7 +66,6 @@ public:
     static const uint8_t UNKNOWN = 0xF9;        // Response to unknown command
     static const uint8_t WRITE_FAILURE = 0xFA;  // EEPROM write failure
     static const uint8_t BLOCKED = 0xFB;        // Access not allowed or blocked, or EEPROM is password protected
-    static const uint8_t UNDEFINED = 0xFF;      // Undefined response (error)
 
     // The following values are applicable to SPISettings/configureChipSettings()/getChipSettings()
     static const uint8_t PCGPIO = 0x00;     // Pin configured as GPIO
