@@ -71,11 +71,11 @@ public:
     static const uint8_t PCGPIO = 0x00;   // Pin configured as GPIO
     static const uint8_t PCCS = 0x01;     // Pin configured as chip select
     static const uint8_t PCFUNC = 0x02;   // Pin configured as a dedicated function pin
-    static const uint8_t IMCNTHP = 0x04;  // Interrupt mode set to count high pulses
-    static const uint8_t IMCNTLP = 0x03;  // Interrupt mode set to count low pulses
-    static const uint8_t IMCNTRE = 0x02;  // Interrupt mode set to count rising edges
-    static const uint8_t IMCNTFE = 0x01;  // Interrupt mode set to count falling edges
     static const uint8_t IMNOCNT = 0x00;  // Interrupt mode disabled (no interrupt counting)
+    static const uint8_t IMCNTFE = 0x01;  // Interrupt mode set to count falling edges
+    static const uint8_t IMCNTRE = 0x02;  // Interrupt mode set to count rising edges
+    static const uint8_t IMCNTLP = 0x03;  // Interrupt mode set to count low pulses
+    static const uint8_t IMCNTHP = 0x04;  // Interrupt mode set to count high pulses
 
     // The following values are applicable to SPISettings/configureSPISettings()/getSPISettings()
     static const uint32_t BRT1K464 = 1464;    // Value corresponding to a bit rate of 1.464Kbps
