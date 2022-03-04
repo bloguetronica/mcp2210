@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.7.0
+/* MCP2210 class - Version 0.8.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -11,7 +11,7 @@
    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
    License for more details.
 
-   You should have received a copy of the GNU Lesser General Public License
+   You should have receivehttps://github.com/bloguetronica/cp2130-comd a copy of the GNU Lesser General Public License
    along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
 
@@ -45,6 +45,11 @@ public:
     static const int ERROR_NOT_FOUND = 2;   // Returned by open() if the device was not found
     static const int ERROR_BUSY = 3;        // Returned by open() if the device is already in use
     static const size_t COMMAND_SIZE = 64;  // HID command size
+
+    // EEPROM specific definitions
+    static const size_t EEPROM_SIZE = 256;     // EEPROM size in bytes
+    static const uint8_t EEPROM_BEGIN = 0x00;  // EEPROM first address
+    static const uint8_t EEPROM_END = 0xFF;    // EEPROM last address
 
     // HID commands
     static const uint8_t GET_CHIP_SETTINGS = 0x20;  // Get chip settings
@@ -180,7 +185,9 @@ public:
     std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
+    std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
+    uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
 
     static std::vector<std::string> listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr);
 };
