@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.10.1
+/* MCP2210 class - Version 0.11.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -34,8 +34,9 @@ private:
     libusb_device_handle *handle_;
     bool disconnected_, kernelWasAttached_;
 
-    std::u16string getDescGeneric(uint8_t command, int &errcnt, std::string &errstr);
+    std::u16string getDescGeneric(uint8_t subcomid, int &errcnt, std::string &errstr);
     void interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr);
+    uint8_t writeDescGeneric(const std::u16string &descriptor, uint8_t subcomid, int &errcnt, std::string &errstr);
 
 public:
     // Class definitions
@@ -46,24 +47,28 @@ public:
     static const int ERROR_NOT_FOUND = 2;   // Returned by open() if the device was not found
     static const int ERROR_BUSY = 3;        // Returned by open() if the device is already in use
     static const size_t COMMAND_SIZE = 64;  // HID command size
+    
+    // Descriptor specific definitions
+    static const size_t DESC_MAXLEN = 28;  // Maximum length for any descriptor
 
     // EEPROM specific definitions
     static const size_t EEPROM_SIZE = 256;     // EEPROM size in bytes
     static const uint8_t EEPROM_BEGIN = 0x00;  // EEPROM first address
     static const uint8_t EEPROM_END = 0xFF;    // EEPROM last address
 
-    // HID commands
+    // HID command IDs
     static const uint8_t GET_CHIP_SETTINGS = 0x20;   // Get chip settings
     static const uint8_t SET_CHIP_SETTINGS = 0x21;   // Set chip settings
     static const uint8_t SET_SPI_SETTINGS = 0x40;    // Set SPI transfer settings
     static const uint8_t GET_SPI_SETTINGS = 0x41;    // Get SPI transfer settings
     static const uint8_t READ_EEPROM = 0x50;         // Read EEPROM
     static const uint8_t WRITE_EEPROM = 0x51;        // Write EEPROM
+    static const uint8_t SET_NVRAM_SETTINGS = 0x60;  // Set NVRAM settings
     static const uint8_t GET_NVRAM_SETTINGS = 0x61;  // Get NVRAM settings
 
-    // NVRAM settings sub-commands
-    static const uint8_t GET_PRODUCT_NAME = 0x40;       // Get USB product name
-    static const uint8_t GET_MANUFACTURER_NAME = 0x50;  // Get USB manufacturer name
+    // NVRAM settings sub-command IDs
+    static const uint8_t MANUFACTURER_NAME = 0x50;  // USB manufacturer name
+    static const uint8_t PRODUCT_NAME = 0x40;       // USB product name
 
     // HID command responses
     static const uint8_t COMPLETED = 0x00;      // Command completed successfully
@@ -72,6 +77,7 @@ public:
     static const uint8_t UNKNOWN = 0xF9;        // Response to unknown command
     static const uint8_t WRITE_FAILURE = 0xFA;  // EEPROM write failure
     static const uint8_t BLOCKED = 0xFB;        // Access not allowed or blocked, or EEPROM is password protected
+    static const uint8_t OTHER_ERROR = 0xFF;    // Other error (check errcnt and errstr for details)
 
     // The following values are applicable to SPISettings/configureChipSettings()/getChipSettings()
     static const uint8_t PCGPIO = 0x00;   // Pin configured as GPIO
@@ -195,6 +201,8 @@ public:
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
+    uint8_t writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr);
+    uint8_t writeProductDesc(const std::u16string &product, int &errcnt, std::string &errstr);
 
     static std::vector<std::string> listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr);
 };

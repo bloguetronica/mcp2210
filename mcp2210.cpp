@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.10.1
+/* MCP2210 class - Version 0.11.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -32,18 +32,15 @@ const uint8_t EPIN = 0x81;            // Address of endpoint assuming the IN dir
 const uint8_t EPOUT = 0x01;           // Address of endpoint assuming the OUT direction
 const unsigned int TR_TIMEOUT = 500;  // Transfer timeout in milliseconds
 
-// Specific to getDescGeneric()
-const size_t DESC_MAXSIZE = 58;  // Descriptor maximum size (in bytes)
-
-// Private generic function that is used to get manufacturer or product descriptors
-std::u16string MCP2210::getDescGeneric(uint8_t subcommand, int &errcnt, std::string &errstr)
+// Private generic function that is used to get any descriptor
+std::u16string MCP2210::getDescGeneric(uint8_t subcomid, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
-        GET_NVRAM_SETTINGS,  // Header
-        subcommand
+        GET_NVRAM_SETTINGS, subcomid  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    size_t length = (response[4] > DESC_MAXSIZE ? DESC_MAXSIZE : response[4]) - 2;  // Descriptor internal length
+    size_t maxLength = 2 * DESC_MAXLEN + 2;  // Descriptor maximum length in bytes
+    size_t length = (response[4] > maxLength ? maxLength : response[4]) - 2;  // Descriptor internal length
     std::u16string descriptor;
     for (size_t i = 0; i < length; i += 2) {
         if (response[i + 6] != 0x00 || response[i + 7] != 0x00) {  // Filter out null characters
@@ -83,6 +80,25 @@ void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int l
             }
         }
     }
+}
+
+// Private generic function that is used to write any descriptor
+uint8_t MCP2210::writeDescGeneric(const std::u16string &descriptor, uint8_t subcomid, int &errcnt, std::string &errstr)
+{
+    size_t strsize = descriptor.size();
+    std::vector<uint8_t> command(2 * strsize + 6);
+    command[0] = SET_NVRAM_SETTINGS;                     // Header
+    command[1] = subcomid;
+    command[2] = 0x00;
+    command[3] = 0x00;
+    command[4] = static_cast<uint8_t>(2 * strsize + 2);  // Descriptor length
+    command[5] = 0x03;                                   // Descriptor constant
+    for (size_t i = 0; i < descriptor.size(); ++i) {
+        command[2 * i + 6] = static_cast<uint8_t>(descriptor[i]);
+        command[2 * i + 7] = static_cast<uint8_t>(descriptor[i] >> 8);
+    }
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[1];
 }
 
 // "Equal to" operator for ChipSettings
@@ -218,13 +234,13 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
 // Gets the manufacturer descriptor from the MCP2210 NVRAM
 std::u16string MCP2210::getManufacturerDesc(int &errcnt, std::string &errstr)
 {
-    return getDescGeneric(GET_MANUFACTURER_NAME, errcnt, errstr);
+    return getDescGeneric(MANUFACTURER_NAME, errcnt, errstr);
 }
 
 // Gets the product descriptor from the MCP2210 NVRAM
 std::u16string MCP2210::getProductDesc(int &errcnt, std::string &errstr)
 {
-    return getDescGeneric(GET_PRODUCT_NAME, errcnt, errstr);
+    return getDescGeneric(PRODUCT_NAME, errcnt, errstr);
 }
 
 // Returns applied SPI transfer settings
@@ -366,7 +382,7 @@ uint8_t MCP2210::writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, st
 // Writes over the EEPROM, within the specified range and based on the given vector
 uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr)
 {
-    uint8_t retval = 0xFF;
+    uint8_t retval = OTHER_ERROR;
     if (begin > end) {
         ++errcnt;
         errstr += "In writeEEPROMRange(): the first address cannot be greater than the last address.\n";  // Program logic error
@@ -381,6 +397,34 @@ uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<
                 break;  // Abort
             }
         }
+    }
+    return retval;
+}
+
+// Writes the manufacturer descriptor to the MCP2210 OTP NVRAM
+uint8_t MCP2210::writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr)
+{
+    uint8_t retval;
+    if (manufacturer.size() > DESC_MAXLEN) {
+        ++errcnt;
+        errstr += "In writeManufacturerDesc(): manufacturer descriptor string cannot be longer than 28 characters.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else {
+        retval = writeDescGeneric(manufacturer, MANUFACTURER_NAME, errcnt, errstr);
+    }
+    return retval;
+}
+
+// Writes the product descriptor to the MCP2210 OTP NVRAM
+uint8_t MCP2210::writeProductDesc(const std::u16string &product, int &errcnt, std::string &errstr)
+{
+    uint8_t retval;
+    if (product.size() > DESC_MAXLEN) {
+        ++errcnt;
+        errstr += "In writeProductDesc(): product descriptor string cannot be longer than 28 characters.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else {
+        retval = writeDescGeneric(product, PRODUCT_NAME, errcnt, errstr);
     }
     return retval;
 }
