@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.10.0
+/* MCP2210 class - Version 0.10.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -32,6 +32,9 @@ const uint8_t EPIN = 0x81;            // Address of endpoint assuming the IN dir
 const uint8_t EPOUT = 0x01;           // Address of endpoint assuming the OUT direction
 const unsigned int TR_TIMEOUT = 500;  // Transfer timeout in milliseconds
 
+// Specific to getDescGeneric()
+const size_t DESC_MAXSIZE = 58;  // Descriptor maximum size (in bytes)
+
 // Private generic function that is used to get manufacturer or product descriptors
 std::u16string MCP2210::getDescGeneric(uint8_t subcommand, int &errcnt, std::string &errstr)
 {
@@ -40,10 +43,12 @@ std::u16string MCP2210::getDescGeneric(uint8_t subcommand, int &errcnt, std::str
         subcommand
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    size_t strlength = response[4] / 2 - 1;  // String length (assuming that the last character is always a null character)
-    std::u16string descriptor(strlength, ' ');
-    for (size_t i = 0; i < strlength; ++i) {
-        descriptor[i] = static_cast<uint16_t>(response[2 * i + 7] << 8 | response[2 * i + 6]);  // UTF-16LE conversion as per the USB 2.0 specification
+    size_t length = (response[4] > DESC_MAXSIZE ? DESC_MAXSIZE : response[4]) - 2;  // Descriptor internal length
+    std::u16string descriptor;
+    for (size_t i = 0; i < length; i += 2) {
+        if (response[i + 6] != 0x00 || response[i + 7] != 0x00) {  // Filter out null characters
+            descriptor += static_cast<uint16_t>(response[i + 7] << 8 | response[i + 6]);  // UTF-16LE conversion as per the USB 2.0 specification
+        }
     }
     return descriptor;
 }
