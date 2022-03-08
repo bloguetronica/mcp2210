@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.9.0
+/* MCP2210 class - Version 0.10.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -31,6 +31,22 @@ extern "C" {
 const uint8_t EPIN = 0x81;            // Address of endpoint assuming the IN direction
 const uint8_t EPOUT = 0x01;           // Address of endpoint assuming the OUT direction
 const unsigned int TR_TIMEOUT = 500;  // Transfer timeout in milliseconds
+
+// Private generic function that is used to get manufacturer or product descriptors
+std::u16string MCP2210::getDescGeneric(uint8_t subcommand, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_NVRAM_SETTINGS,  // Header
+        subcommand
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    size_t strlength = response[4] / 2 - 1;  // String length (assuming that the last character is always a null character)
+    std::u16string descriptor(strlength, ' ');
+    for (size_t i = 0; i < strlength; ++i) {
+        descriptor[i] = static_cast<uint16_t>(response[2 * i + 7] << 8 | response[2 * i + 6]);  // UTF-16LE conversion as per the USB 2.0 specification
+    }
+    return descriptor;
+}
 
 // Private function that is used to perform interrupt transfers
 void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr)
@@ -173,7 +189,7 @@ uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, 
 MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
-        GET_CHIP_SETTINGS
+        GET_CHIP_SETTINGS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     ChipSettings settings;
@@ -194,11 +210,23 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
     return settings;
 }
 
+// Gets the manufacturer descriptor from the MCP2210 NVRAM
+std::u16string MCP2210::getManufacturerDesc(int &errcnt, std::string &errstr)
+{
+    return getDescGeneric(GET_MANUFACTURER_NAME, errcnt, errstr);
+}
+
+// Gets the product descriptor from the MCP2210 NVRAM
+std::u16string MCP2210::getProductDesc(int &errcnt, std::string &errstr)
+{
+    return getDescGeneric(GET_PRODUCT_NAME, errcnt, errstr);
+}
+
 // Returns applied SPI transfer settings
 MCP2210::SPISettings MCP2210::getSPISettings(int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
-        GET_SPI_SETTINGS
+        GET_SPI_SETTINGS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     SPISettings settings;

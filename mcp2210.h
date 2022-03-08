@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.9.0
+/* MCP2210 class - Version 0.10.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -34,6 +34,7 @@ private:
     libusb_device_handle *handle_;
     bool disconnected_, kernelWasAttached_;
 
+    std::u16string getDescGeneric(uint8_t command, int &errcnt, std::string &errstr);
     void interruptTransfer(uint8_t endpointAddr, unsigned char *data, int length, int *transferred, int &errcnt, std::string &errstr);
 
 public:
@@ -52,12 +53,17 @@ public:
     static const uint8_t EEPROM_END = 0xFF;    // EEPROM last address
 
     // HID commands
-    static const uint8_t GET_CHIP_SETTINGS = 0x20;  // Get chip settings
-    static const uint8_t SET_CHIP_SETTINGS = 0x21;  // Set chip settings
-    static const uint8_t SET_SPI_SETTINGS = 0x40;   // Set SPI transfer settings
-    static const uint8_t GET_SPI_SETTINGS = 0x41;   // Get SPI transfer settings
-    static const uint8_t READ_EEPROM = 0x50;        // Read EEPROM
-    static const uint8_t WRITE_EEPROM = 0x51;       // Write EEPROM
+    static const uint8_t GET_CHIP_SETTINGS = 0x20;   // Get chip settings
+    static const uint8_t SET_CHIP_SETTINGS = 0x21;   // Set chip settings
+    static const uint8_t SET_SPI_SETTINGS = 0x40;    // Set SPI transfer settings
+    static const uint8_t GET_SPI_SETTINGS = 0x41;    // Get SPI transfer settings
+    static const uint8_t READ_EEPROM = 0x50;         // Read EEPROM
+    static const uint8_t WRITE_EEPROM = 0x51;        // Write EEPROM
+    static const uint8_t GET_NVRAM_SETTINGS = 0x61;  // Get NVRAM settings
+
+    // NVRAM settings sub-commands
+    static const uint8_t GET_PRODUCT_NAME = 0x40;       // Get USB product name
+    static const uint8_t GET_MANUFACTURER_NAME = 0x50;  // Get USB manufacturer name
 
     // HID command responses
     static const uint8_t COMPLETED = 0x00;      // Command completed successfully
@@ -180,6 +186,8 @@ public:
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
+    std::u16string getManufacturerDesc(int &errcnt, std::string &errstr);
+    std::u16string getProductDesc(int &errcnt, std::string &errstr);
     SPISettings getSPISettings(int &errcnt, std::string &errstr);
     std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
