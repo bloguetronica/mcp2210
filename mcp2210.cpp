@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.11.1
+/* MCP2210 class - Version 0.11.2
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -39,13 +39,11 @@ std::u16string MCP2210::getDescGeneric(uint8_t subcomid, int &errcnt, std::strin
         GET_NVRAM_SETTINGS, subcomid  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    size_t maxLength = 2 * DESC_MAXLEN + 2;  // Descriptor maximum length in bytes
+    size_t maxLength = 2 * DESC_MAXLEN + 2;  // Maximum descriptor length in bytes
     size_t length = (response[4] > maxLength ? maxLength : response[4]) - 2;  // Descriptor internal length
     std::u16string descriptor;
     for (size_t i = 0; i < length; i += 2) {
-        if (response[i + 6] != 0x00 || response[i + 7] != 0x00) {  // Filter out null characters
-            descriptor += static_cast<uint16_t>(response[i + 7] << 8 | response[i + 6]);  // UTF-16LE conversion as per the USB 2.0 specification
-        }
+        descriptor += static_cast<uint16_t>(response[i + 7] << 8 | response[i + 6]);  // UTF-16LE conversion as per the USB 2.0 specification
     }
     return descriptor;
 }
@@ -85,15 +83,15 @@ void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int l
 // Private generic function that is used to write any descriptor
 uint8_t MCP2210::writeDescGeneric(const std::u16string &descriptor, uint8_t subcomid, int &errcnt, std::string &errstr)
 {
-    size_t strsize = descriptor.size();
-    std::vector<uint8_t> command(2 * strsize + 6);
-    command[0] = SET_NVRAM_SETTINGS;                     // Header
+    size_t strLength = descriptor.size();  // Descriptor string length
+    std::vector<uint8_t> command(2 * strLength + 6);
+    command[0] = SET_NVRAM_SETTINGS;                       // Header
     command[1] = subcomid;
     command[2] = 0x00;
     command[3] = 0x00;
-    command[4] = static_cast<uint8_t>(2 * strsize + 2);  // Descriptor length
-    command[5] = 0x03;                                   // Descriptor constant
-    for (size_t i = 0; i < descriptor.size(); ++i) {
+    command[4] = static_cast<uint8_t>(2 * strLength + 2);  // Descriptor length in bytes
+    command[5] = 0x03;                                     // USB descriptor constant
+    for (size_t i = 0; i < strLength; ++i) {
         command[2 * i + 6] = static_cast<uint8_t>(descriptor[i]);
         command[2 * i + 7] = static_cast<uint8_t>(descriptor[i] >> 8);
     }
