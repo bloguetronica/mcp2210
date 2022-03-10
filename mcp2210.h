@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.12.0
+/* MCP2210 class - Version 0.13.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -67,14 +67,15 @@ public:
     static const uint8_t GET_NVRAM_SETTINGS = 0x61;  // Get NVRAM settings
 
     // NVRAM settings sub-command IDs
+    static const uint8_t NV_SPI_SETTINGS = 0x10;    // Power-up (non-volatile) SPI transfer settings
     static const uint8_t NV_CHIP_SETTINGS = 0x20;   // Power-up (non-volatile) chip settings
-    static const uint8_t MANUFACTURER_NAME = 0x50;  // USB manufacturer name
     static const uint8_t PRODUCT_NAME = 0x40;       // USB product name
+    static const uint8_t MANUFACTURER_NAME = 0x50;  // USB manufacturer name
 
     // HID command responses
     static const uint8_t COMPLETED = 0x00;       // Command completed successfully
     static const uint8_t BUSY = 0xF7;            // SPI bus not available
-    static const uint8_t IN_PROGRESS = 0xF8;     // USB or SPI transfer in progress
+    static const uint8_t IN_PROGRESS = 0xF8;     // USB or SPI transfer in progress (settings not written)
     static const uint8_t UNKNOWN = 0xF9;         // Response to unknown command
     static const uint8_t WRITE_FAILURE = 0xFA;   // EEPROM write failure
     static const uint8_t BLOCKED = 0xFB;         // Access not allowed or blocked, or EEPROM is password protected
@@ -197,6 +198,7 @@ public:
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
     std::u16string getManufacturerDesc(int &errcnt, std::string &errstr);
     ChipSettings getNVChipSettings(int &errcnt, std::string &errstr);
+    SPISettings getNVSPISettings(int &errcnt, std::string &errstr);
     std::u16string getProductDesc(int &errcnt, std::string &errstr);
     SPISettings getSPISettings(int &errcnt, std::string &errstr);
     std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);
@@ -205,6 +207,8 @@ public:
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
+    uint8_t writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
+    uint8_t writeNVSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     uint8_t writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr);
     uint8_t writeProductDesc(const std::u16string &product, int &errcnt, std::string &errstr);
 

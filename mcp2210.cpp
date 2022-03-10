@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.12.0
+/* MCP2210 class - Version 0.13.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -185,7 +185,7 @@ uint8_t MCP2210::configureChipSettings(const ChipSettings &settings, int &errcnt
     return response[1];
 }
 
-// Configures SPI transfer settings
+// Configures volatile SPI transfer settings
 uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
@@ -235,12 +235,11 @@ std::u16string MCP2210::getManufacturerDesc(int &errcnt, std::string &errstr)
     return getDescGeneric(MANUFACTURER_NAME, errcnt, errstr);
 }
 
-// Returns power-up (non-volatile) chip settings from the MCP2210 NVRAM
+// Retrieves the power-up (non-volatile) chip settings from the MCP2210 NVRAM
 MCP2210::ChipSettings MCP2210::getNVChipSettings(int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
-        GET_NVRAM_SETTINGS,  // Header
-        NV_CHIP_SETTINGS
+        GET_NVRAM_SETTINGS, NV_CHIP_SETTINGS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     ChipSettings settings;
@@ -258,6 +257,25 @@ MCP2210::ChipSettings MCP2210::getNVChipSettings(int &errcnt, std::string &errst
     settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
     settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
+    return settings;
+}
+
+// Retrieves the power-up (non-volatile) SPI transfer settings from the MCP2210 NVRAM
+MCP2210::SPISettings MCP2210::getNVSPISettings(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_NVRAM_SETTINGS, NV_SPI_SETTINGS  // Header
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    SPISettings settings;
+    settings.nbytes = static_cast<uint16_t>(response[19] << 8 | response[18]);                                         // Number of bytes per SPI transfer corresponds to bytes 18 and 19 (little-endian conversion)
+    settings.bitrate = static_cast<uint32_t>(response[7] << 24 | response[6] << 16 | response[5] << 8 | response[4]);  // Bit rate corresponds to bytes 4 to 7 (little-endian conversion)
+    settings.mode = response[20];                                                                                      // SPI mode corresponds to byte 20
+    settings.actcs = response[10];                                                                                     // Active chip select value corresponds to bytes 10 and 11
+    settings.idlcs = response[8];                                                                                      // Idle chip select value corresponds to bytes 8 and 9
+    settings.csdtdly = static_cast<uint16_t>(response[13] << 8 | response[12]);                                        // Chip select to data corresponds to bytes 12 and 13 (little-endian conversion)
+    settings.dtcsdly = static_cast<uint16_t>(response[15] << 8 | response[14]);                                        // Data to chip select delay corresponds to bytes 14 and 15 (little-endian conversion)
+    settings.itbytdly = static_cast<uint16_t>(response[17] << 8 | response[16]);                                       // Inter-byte delay corresponds to bytes 16 and 17 (little-endian conversion)
     return settings;
 }
 
@@ -426,6 +444,47 @@ uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<
         }
     }
     return retval;
+}
+
+// Writes the given chip transfer settings to the MCP2210 OTP NVRAM
+uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
+{
+        std::vector<uint8_t> command = {
+        SET_NVRAM_SETTINGS, NV_CHIP_SETTINGS, 0x00, 0x00,                                                 // Header
+        settings.gp0,                                                                                     // GP0 pin configuration
+        settings.gp1,                                                                                     // GP1 pin configuration
+        settings.gp2,                                                                                     // GP2 pin configuration
+        settings.gp3,                                                                                     // GP3 pin configuration
+        settings.gp4,                                                                                     // GP4 pin configuration
+        settings.gp5,                                                                                     // GP5 pin configuration
+        settings.gp6,                                                                                     // GP6 pin configuration
+        settings.gp7,                                                                                     // GP7 pin configuration
+        settings.gp8,                                                                                     // GP8 pin configuration
+        settings.gpout, 0x00,                                                                             // Default GPIO output
+        settings.gpdir, 0x00,                                                                             // Default GPIO direction
+        static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi)  // Other chip settings
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[1];
+}
+
+// Writes the given SPI transfer settings to the MCP2210 OTP NVRAM
+uint8_t MCP2210::writeNVSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        SET_NVRAM_SETTINGS, NV_SPI_SETTINGS, 0x00, 0x00,                                             // Header
+        static_cast<uint8_t>(settings.bitrate), static_cast<uint8_t>(settings.bitrate >> 8),         // Bit rate
+        static_cast<uint8_t>(settings.bitrate >> 16), static_cast<uint8_t>(settings.bitrate >> 24),
+        settings.idlcs, 0x00,                                                                        // Idle chip select
+        settings.actcs, 0x00,                                                                        // Active chip select
+        static_cast<uint8_t>(settings.csdtdly), static_cast<uint8_t>(settings.csdtdly >> 8),         // Chip select to data delay
+        static_cast<uint8_t>(settings.dtcsdly), static_cast<uint8_t>(settings.dtcsdly >> 8),         // Data to chip select delay
+        static_cast<uint8_t>(settings.itbytdly), static_cast<uint8_t>(settings.itbytdly >> 8),       // Inter-byte delay
+        static_cast<uint8_t>(settings.nbytes), static_cast<uint8_t>(settings.nbytes >> 8),           // Number of bytes per SPI transaction
+        settings.mode                                                                                // SPI mode
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[1];
 }
 
 // Writes the manufacturer descriptor to the MCP2210 OTP NVRAM
