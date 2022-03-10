@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.11.2
+/* MCP2210 class - Version 0.12.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -47,7 +47,7 @@ public:
     static const int ERROR_NOT_FOUND = 2;   // Returned by open() if the device was not found
     static const int ERROR_BUSY = 3;        // Returned by open() if the device is already in use
     static const size_t COMMAND_SIZE = 64;  // HID command size
-    
+
     // Descriptor specific definitions
     static const size_t DESC_MAXLEN = 28;  // Maximum length for any descriptor
 
@@ -67,17 +67,20 @@ public:
     static const uint8_t GET_NVRAM_SETTINGS = 0x61;  // Get NVRAM settings
 
     // NVRAM settings sub-command IDs
+    static const uint8_t NV_CHIP_SETTINGS = 0x20;   // Power-up (non-volatile) chip settings
     static const uint8_t MANUFACTURER_NAME = 0x50;  // USB manufacturer name
     static const uint8_t PRODUCT_NAME = 0x40;       // USB product name
 
     // HID command responses
-    static const uint8_t COMPLETED = 0x00;      // Command completed successfully
-    static const uint8_t BUSY = 0xF7;           // SPI bus not available
-    static const uint8_t IN_PROGRESS = 0xF8;    // USB or SPI transfer in progress
-    static const uint8_t UNKNOWN = 0xF9;        // Response to unknown command
-    static const uint8_t WRITE_FAILURE = 0xFA;  // EEPROM write failure
-    static const uint8_t BLOCKED = 0xFB;        // Access not allowed or blocked, or EEPROM is password protected
-    static const uint8_t OTHER_ERROR = 0xFF;    // Other error (check errcnt and errstr for details)
+    static const uint8_t COMPLETED = 0x00;       // Command completed successfully
+    static const uint8_t BUSY = 0xF7;            // SPI bus not available
+    static const uint8_t IN_PROGRESS = 0xF8;     // USB or SPI transfer in progress
+    static const uint8_t UNKNOWN = 0xF9;         // Response to unknown command
+    static const uint8_t WRITE_FAILURE = 0xFA;   // EEPROM write failure
+    static const uint8_t BLOCKED = 0xFB;         // Access not allowed or blocked, or EEPROM is password protected
+    static const uint8_t REJECTED = 0xFC;        // Access rejected
+    static const uint8_t WRONG_PASSWORD = 0xFD;  // Wrong password (number of attempts is still within the limit)
+    static const uint8_t OTHER_ERROR = 0xFF;     // Other error (check errcnt and errstr for details)
 
     // The following values are applicable to SPISettings/configureChipSettings()/getChipSettings()
     static const uint8_t PCGPIO = 0x00;   // Pin configured as GPIO
@@ -193,6 +196,7 @@ public:
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
     std::u16string getManufacturerDesc(int &errcnt, std::string &errstr);
+    ChipSettings getNVChipSettings(int &errcnt, std::string &errstr);
     std::u16string getProductDesc(int &errcnt, std::string &errstr);
     SPISettings getSPISettings(int &errcnt, std::string &errstr);
     std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);

@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.11.2
+/* MCP2210 class - Version 0.12.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -233,6 +233,32 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
 std::u16string MCP2210::getManufacturerDesc(int &errcnt, std::string &errstr)
 {
     return getDescGeneric(MANUFACTURER_NAME, errcnt, errstr);
+}
+
+// Returns power-up (non-volatile) chip settings from the MCP2210 NVRAM
+MCP2210::ChipSettings MCP2210::getNVChipSettings(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_NVRAM_SETTINGS,  // Header
+        NV_CHIP_SETTINGS
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    ChipSettings settings;
+    settings.gp0 = response[4];                                         // GP0 pin configuration corresponds to byte 4
+    settings.gp1 = response[5];                                         // GP1 pin configuration corresponds to byte 5
+    settings.gp2 = response[6];                                         // GP2 pin configuration corresponds to byte 6
+    settings.gp3 = response[7];                                         // GP3 pin configuration corresponds to byte 7
+    settings.gp4 = response[8];                                         // GP4 pin configuration corresponds to byte 8
+    settings.gp5 = response[9];                                         // GP5 pin configuration corresponds to byte 9
+    settings.gp6 = response[10];                                        // GP6 pin configuration corresponds to byte 10
+    settings.gp7 = response[11];                                        // GP7 pin configuration corresponds to byte 11
+    settings.gp8 = response[12];                                        // GP8 pin configuration corresponds to byte 12
+    settings.gpdir = response[15];                                      // Default GPIO direction corresponds to bytes 15 and 16
+    settings.gpout = response[13];                                      // Default GPIO output corresponds to bytes 13 and 14
+    settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
+    settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
+    settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
+    return settings;
 }
 
 // Gets the product descriptor from the MCP2210 NVRAM
