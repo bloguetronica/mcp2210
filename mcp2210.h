@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.13.0
+/* MCP2210 class - Version 0.14.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -59,6 +59,8 @@ public:
     // HID command IDs
     static const uint8_t GET_CHIP_SETTINGS = 0x20;   // Get chip settings
     static const uint8_t SET_CHIP_SETTINGS = 0x21;   // Set chip settings
+    static const uint8_t SET_GPIO_VALUES = 0x30;     // Set GPIO pin values
+    static const uint8_t GET_GPIO_VALUES = 0x31;     // Get GPIO pin values
     static const uint8_t SET_SPI_SETTINGS = 0x40;    // Set SPI transfer settings
     static const uint8_t GET_SPI_SETTINGS = 0x41;    // Get SPI transfer settings
     static const uint8_t READ_EEPROM = 0x50;         // Read EEPROM
@@ -196,6 +198,7 @@ public:
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
+    uint16_t getGPIOs(int &errcnt, std::string &errstr);
     std::u16string getManufacturerDesc(int &errcnt, std::string &errstr);
     ChipSettings getNVChipSettings(int &errcnt, std::string &errstr);
     SPISettings getNVSPISettings(int &errcnt, std::string &errstr);
@@ -205,6 +208,7 @@ public:
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
+    uint8_t setGPIOs(uint16_t values, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
     uint8_t writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
