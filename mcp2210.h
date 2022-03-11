@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.14.0
+/* MCP2210 class - Version 0.15.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -57,16 +57,18 @@ public:
     static const uint8_t EEPROM_END = 0xFF;    // EEPROM last address
 
     // HID command IDs
-    static const uint8_t GET_CHIP_SETTINGS = 0x20;   // Get chip settings
-    static const uint8_t SET_CHIP_SETTINGS = 0x21;   // Set chip settings
-    static const uint8_t SET_GPIO_VALUES = 0x30;     // Set GPIO pin values
-    static const uint8_t GET_GPIO_VALUES = 0x31;     // Get GPIO pin values
-    static const uint8_t SET_SPI_SETTINGS = 0x40;    // Set SPI transfer settings
-    static const uint8_t GET_SPI_SETTINGS = 0x41;    // Get SPI transfer settings
-    static const uint8_t READ_EEPROM = 0x50;         // Read EEPROM
-    static const uint8_t WRITE_EEPROM = 0x51;        // Write EEPROM
-    static const uint8_t SET_NVRAM_SETTINGS = 0x60;  // Set NVRAM settings
-    static const uint8_t GET_NVRAM_SETTINGS = 0x61;  // Get NVRAM settings
+    static const uint8_t GET_CHIP_SETTINGS = 0x20;    // Get chip settings
+    static const uint8_t SET_CHIP_SETTINGS = 0x21;    // Set chip settings
+    static const uint8_t SET_GPIO_VALUES = 0x30;      // Set GPIO pin values
+    static const uint8_t GET_GPIO_VALUES = 0x31;      // Get GPIO pin values
+    static const uint8_t SET_GPIO_DIRECTIONS = 0x32;  // Set GPIO pin directions
+    static const uint8_t GET_GPIO_DIRECTIONS = 0x33;  // Get GPIO pin directions
+    static const uint8_t SET_SPI_SETTINGS = 0x40;     // Set SPI transfer settings
+    static const uint8_t GET_SPI_SETTINGS = 0x41;     // Get SPI transfer settings
+    static const uint8_t READ_EEPROM = 0x50;          // Read EEPROM
+    static const uint8_t WRITE_EEPROM = 0x51;         // Write EEPROM
+    static const uint8_t SET_NVRAM_SETTINGS = 0x60;   // Set NVRAM settings
+    static const uint8_t GET_NVRAM_SETTINGS = 0x61;   // Get NVRAM settings
 
     // NVRAM settings sub-command IDs
     static const uint8_t NV_SPI_SETTINGS = 0x10;    // Power-up (non-volatile) SPI transfer settings
@@ -164,8 +166,8 @@ public:
         uint8_t gp6;      // GP6 pin configuration
         uint8_t gp7;      // GP7 pin configuration
         uint8_t gp8;      // GP8 pin configuration
-        uint8_t gpdir;    // Default GPIO direction (CS7 to CS0)
-        uint8_t gpout;    // Default GPIO output (CS7 to CS0)
+        uint8_t gpdir;    // Default GPIO directions (CS7 to CS0)
+        uint8_t gpout;    // Default GPIO outputs (CS7 to CS0)
         bool rmwakeup;    // Remote wake-up
         uint8_t intmode;  // Interrupt counting mode
         bool nrelspi;     // SPI bus release (negated)
@@ -198,6 +200,7 @@ public:
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
+    uint16_t getGPIODirections(int &errcnt, std::string &errstr);
     uint16_t getGPIOs(int &errcnt, std::string &errstr);
     std::u16string getManufacturerDesc(int &errcnt, std::string &errstr);
     ChipSettings getNVChipSettings(int &errcnt, std::string &errstr);
@@ -208,6 +211,7 @@ public:
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
+    uint8_t setGPIODirections(uint16_t directions, int &errcnt, std::string &errstr);
     uint8_t setGPIOs(uint16_t values, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
