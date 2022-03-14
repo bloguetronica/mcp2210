@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.15.0
+/* MCP2210 class - Version 0.16.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -61,13 +61,13 @@ void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int l
             std::ostringstream stream;
             if (endpointAddr < 0x80) {
                 stream << "Failed interrupt OUT transfer to endpoint "
-                       << (0x0F & endpointAddr)
+                       << (0x0f & endpointAddr)
                        << " (address 0x"
                        << std::hex << std::setfill ('0') << std::setw(2) << static_cast<int>(endpointAddr)
                        << ")." << std::endl;
             } else {
                 stream << "Failed interrupt IN transfer from endpoint "
-                       << (0x0F & endpointAddr)
+                       << (0x0f & endpointAddr)
                        << " (address 0x"
                        << std::hex << std::setfill ('0') << std::setw(2) << static_cast<int>(endpointAddr)
                        << ")." << std::endl;
@@ -221,22 +221,50 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
     settings.gp6 = response[10];                                        // GP6 pin configuration corresponds to byte 10
     settings.gp7 = response[11];                                        // GP7 pin configuration corresponds to byte 11
     settings.gp8 = response[12];                                        // GP8 pin configuration corresponds to byte 12
-    settings.gpdir = response[15];                                      // Default GPIO directions (CS7 to CS0) corresponds to bytes 15 and 16
-    settings.gpout = response[13];                                      // Default GPIO outputs (CS7 to CS0) corresponds to bytes 13 and 14
+    settings.gpdir = response[15];                                      // Default GPIO directions (GPIO7 to GPIO0) corresponds to byte 15
+    settings.gpout = response[13];                                      // Default GPIO outputs (GPIO7 to GPIO0) corresponds to byte 13
     settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
     settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
     return settings;
 }
 
+// Returns the value of a given GPIO pin on the MCP2210
+bool MCP2210::getGPIO(uint8_t gpio, int &errcnt, std::string &errstr)
+{
+    bool value;
+    if (gpio > 8) {
+        ++errcnt;
+        errstr += "In getGPIO(): GPIO pin value must be between 0 and 8.\n";  // Program logic error
+        value = false;
+    } else {
+        value = (0x0001 << gpio & getGPIOs(errcnt, errstr)) != 0x0000;
+    }
+    return value;
+}
+
+// Returns the direction of a given GPIO pin on the MCP2210
+bool MCP2210::getGPIODirection(uint8_t gpio, int &errcnt, std::string &errstr)
+{
+    bool direction;
+    if (gpio > 7) {
+        ++errcnt;
+        errstr += "In getGPIODirection(): GPIO pin value must be between 0 and 7.\n";  // Program logic error
+        direction = false;
+    } else {
+        direction = (0x01 << gpio & getGPIODirections(errcnt, errstr)) != 0x00;
+    }
+    return direction;
+}
+
 // Returns the directions of all GPIO pins on the MCP2210
-uint16_t MCP2210::getGPIODirections(int &errcnt, std::string &errstr)
+uint8_t MCP2210::getGPIODirections(int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
         GET_GPIO_DIRECTIONS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    return static_cast<uint16_t>(response[5] << 8 | response[4]);  // GPIO directions (CS8 to CS0) corresponds to bytes 4 and 5
+    return response[4];  // GPIO directions (GPIO7 to GPIO0) corresponds to byte 4
 }
 
 // Returns the values of all GPIO pins on the MCP2210
@@ -246,7 +274,7 @@ uint16_t MCP2210::getGPIOs(int &errcnt, std::string &errstr)
         GET_GPIO_VALUES  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    return static_cast<uint16_t>(response[5] << 8 | response[4]);  // GPIO values (CS8 to CS0) corresponds to bytes 4 and 5
+    return static_cast<uint16_t>(0x01ff & (response[5] << 8 | response[4]));  // GPIO values (GPIO8 to GPIO0) corresponds to bytes 4 and 5
 }
 
 // Retrieves the manufacturer descriptor from the MCP2210 NVRAM
@@ -272,8 +300,8 @@ MCP2210::ChipSettings MCP2210::getNVChipSettings(int &errcnt, std::string &errst
     settings.gp6 = response[10];                                        // GP6 pin configuration corresponds to byte 10
     settings.gp7 = response[11];                                        // GP7 pin configuration corresponds to byte 11
     settings.gp8 = response[12];                                        // GP8 pin configuration corresponds to byte 12
-    settings.gpdir = response[15];                                      // Default GPIO directions (CS7 to CS0) corresponds to bytes 15 and 16
-    settings.gpout = response[13];                                      // Default GPIO outputs (CS7 to CS0) corresponds to bytes 13 and 14
+    settings.gpdir = response[15];                                      // Default GPIO directions (GPIO7 to GPIO0) corresponds to byte 15
+    settings.gpout = response[13];                                      // Default GPIO outputs (GPIO7 to GPIO0) corresponds to byte 13
     settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
     settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
@@ -431,11 +459,11 @@ std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &e
 }
 
 // Sets the directions of all GPIO pins on the MCP2210
-uint8_t MCP2210::setGPIODirections(uint16_t directions, int &errcnt, std::string &errstr)
+uint8_t MCP2210::setGPIODirections(uint8_t directions, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
-        SET_GPIO_DIRECTIONS, 0x00, 0x00, 0x00,                                   // Header
-        static_cast<uint8_t>(directions), static_cast<uint8_t>(directions >> 8)  // GPIO directions (CS8 to CS0)
+        SET_GPIO_DIRECTIONS, 0x00, 0x00, 0x00,  // Header
+        directions, 0x01                        // GPIO directions (GPIO7 to GPIO0)
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     return response[1];
@@ -445,8 +473,8 @@ uint8_t MCP2210::setGPIODirections(uint16_t directions, int &errcnt, std::string
 uint8_t MCP2210::setGPIOs(uint16_t values, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
-        SET_GPIO_VALUES, 0x00, 0x00, 0x00,                               // Header
-        static_cast<uint8_t>(values), static_cast<uint8_t>(values >> 8)  // GPIO values (CS8 to CS0)
+        SET_GPIO_VALUES, 0x00, 0x00, 0x00,  // Header
+        static_cast<uint8_t>(values), 0x00  // GPIO values (GPIO7 to GPPIO0 - GPIO8 is an input only pin)
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     return response[1];
@@ -491,7 +519,7 @@ uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<
 // Writes the given chip transfer settings to the MCP2210 OTP NVRAM
 uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
 {
-        std::vector<uint8_t> command = {
+    std::vector<uint8_t> command = {
         SET_NVRAM_SETTINGS, NV_CHIP_SETTINGS, 0x00, 0x00,                                                 // Header
         settings.gp0,                                                                                     // GP0 pin configuration
         settings.gp1,                                                                                     // GP1 pin configuration
@@ -502,8 +530,8 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, 
         settings.gp6,                                                                                     // GP6 pin configuration
         settings.gp7,                                                                                     // GP7 pin configuration
         settings.gp8,                                                                                     // GP8 pin configuration
-        settings.gpout, 0x00,                                                                             // Default GPIO outputs (CS7 to CS0)
-        settings.gpdir, 0x00,                                                                             // Default GPIO directions (CS7 to CS0)
+        settings.gpout, 0x00,                                                                             // Default GPIO outputs (GPIO7 to GPIO0)
+        settings.gpdir, 0x00,                                                                             // Default GPIO directions (GPIO7 to GPIO0)
         static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi)  // Other chip settings
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);

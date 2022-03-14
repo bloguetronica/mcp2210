@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.15.0
+/* MCP2210 class - Version 0.16.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -40,8 +40,8 @@ private:
 
 public:
     // Class definitions
-    static const uint16_t VID = 0x04D8;     // Default USB vendor ID
-    static const uint16_t PID = 0x00DE;     // Default USB product ID
+    static const uint16_t VID = 0x04d8;     // Default USB vendor ID
+    static const uint16_t PID = 0x00de;     // Default USB product ID
     static const int SUCCESS = 0;           // Returned by open() if successful
     static const int ERROR_INIT = 1;        // Returned by open() in case of a libusb initialization failure
     static const int ERROR_NOT_FOUND = 2;   // Returned by open() if the device was not found
@@ -54,7 +54,7 @@ public:
     // EEPROM specific definitions
     static const size_t EEPROM_SIZE = 256;     // EEPROM size in bytes
     static const uint8_t EEPROM_BEGIN = 0x00;  // EEPROM first address
-    static const uint8_t EEPROM_END = 0xFF;    // EEPROM last address
+    static const uint8_t EEPROM_END = 0xff;    // EEPROM last address
 
     // HID command IDs
     static const uint8_t GET_CHIP_SETTINGS = 0x20;    // Get chip settings
@@ -78,14 +78,14 @@ public:
 
     // HID command responses
     static const uint8_t COMPLETED = 0x00;       // Command completed successfully
-    static const uint8_t BUSY = 0xF7;            // SPI bus not available
-    static const uint8_t IN_PROGRESS = 0xF8;     // USB or SPI transfer in progress (settings not written)
-    static const uint8_t UNKNOWN = 0xF9;         // Response to unknown command
-    static const uint8_t WRITE_FAILURE = 0xFA;   // EEPROM write failure
-    static const uint8_t BLOCKED = 0xFB;         // Access not allowed or blocked, or EEPROM is password protected
-    static const uint8_t REJECTED = 0xFC;        // Access rejected
-    static const uint8_t WRONG_PASSWORD = 0xFD;  // Wrong password (number of attempts is still within the limit)
-    static const uint8_t OTHER_ERROR = 0xFF;     // Other error (check errcnt and errstr for details)
+    static const uint8_t BUSY = 0xf7;            // SPI bus not available
+    static const uint8_t IN_PROGRESS = 0xf8;     // USB or SPI transfer in progress (settings not written)
+    static const uint8_t UNKNOWN = 0xf9;         // Response to unknown command
+    static const uint8_t WRITE_FAILURE = 0xfa;   // EEPROM write failure
+    static const uint8_t BLOCKED = 0xfb;         // Access not allowed or blocked, or EEPROM is password protected
+    static const uint8_t REJECTED = 0xfc;        // Access rejected
+    static const uint8_t WRONG_PASSWORD = 0xfd;  // Wrong password (number of attempts is still within the limit)
+    static const uint8_t OTHER_ERROR = 0xff;     // Other error (check errcnt and errstr for details)
 
     // The following values are applicable to SPISettings/configureChipSettings()/getChipSettings()
     static const uint8_t PCGPIO = 0x00;   // Pin configured as GPIO
@@ -200,7 +200,9 @@ public:
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
-    uint16_t getGPIODirections(int &errcnt, std::string &errstr);
+    bool getGPIO(uint8_t gpio, int &errcnt, std::string &errstr);
+    bool getGPIODirection(uint8_t gpio, int &errcnt, std::string &errstr);
+    uint8_t getGPIODirections(int &errcnt, std::string &errstr);
     uint16_t getGPIOs(int &errcnt, std::string &errstr);
     std::u16string getManufacturerDesc(int &errcnt, std::string &errstr);
     ChipSettings getNVChipSettings(int &errcnt, std::string &errstr);
@@ -211,7 +213,7 @@ public:
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
-    uint8_t setGPIODirections(uint16_t directions, int &errcnt, std::string &errstr);
+    uint8_t setGPIODirections(uint8_t directions, int &errcnt, std::string &errstr);
     uint8_t setGPIOs(uint16_t values, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
