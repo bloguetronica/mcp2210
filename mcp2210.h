@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.16.0
+/* MCP2210 class - Version 0.16.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it

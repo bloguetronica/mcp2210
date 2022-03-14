@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.16.0
+/* MCP2210 class - Version 0.16.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -274,7 +274,7 @@ uint16_t MCP2210::getGPIOs(int &errcnt, std::string &errstr)
         GET_GPIO_VALUES  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    return static_cast<uint16_t>(0x01ff & (response[5] << 8 | response[4]));  // GPIO values (GPIO8 to GPIO0) corresponds to bytes 4 and 5
+    return static_cast<uint16_t>((0x01 & response[5]) << 8 | response[4]);  // GPIO values (GPIO8 to GPIO0) corresponds to bytes 4 and 5
 }
 
 // Retrieves the manufacturer descriptor from the MCP2210 NVRAM
@@ -474,7 +474,7 @@ uint8_t MCP2210::setGPIOs(uint16_t values, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
         SET_GPIO_VALUES, 0x00, 0x00, 0x00,  // Header
-        static_cast<uint8_t>(values), 0x00  // GPIO values (GPIO7 to GPPIO0 - GPIO8 is an input only pin)
+        static_cast<uint8_t>(values)        // GPIO values (GPIO7 to GPPIO0 - GPIO8 is an input only pin)
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     return response[1];
