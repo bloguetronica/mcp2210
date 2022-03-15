@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.17.0
+/* MCP2210 class - Version 0.17.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -177,8 +177,8 @@ uint8_t MCP2210::configureChipSettings(const ChipSettings &settings, int &errcnt
         settings.gp6,                                                                                     // GP6 pin configuration
         settings.gp7,                                                                                     // GP7 pin configuration
         settings.gp8,                                                                                     // GP8 pin configuration
-        settings.gpout, 0x00,                                                                             // Default GPIO outputs (CS7 to CS0)
-        settings.gpdir, 0x00,                                                                             // Default GPIO directions (CS7 to CS0)
+        settings.gpout, 0x00,                                                                             // Default GPIO outputs (GPIO7 to GPIO0)
+        settings.gpdir, 0x00,                                                                             // Default GPIO directions (GPIO7 to GPIO0)
         static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi)  // Other chip settings
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -235,7 +235,7 @@ bool MCP2210::getGPIO(uint8_t gpio, int &errcnt, std::string &errstr)
     bool value;
     if (gpio > 8) {
         ++errcnt;
-        errstr += "In getGPIO(): GPIO pin value must be between 0 and 8.\n";  // Program logic error
+        errstr += "In getGPIO(): GPIO pin number must be between 0 and 8.\n";  // Program logic error
         value = false;
     } else {
         value = (0x0001 << gpio & getGPIOs(errcnt, errstr)) != 0x0000;
@@ -249,7 +249,7 @@ bool MCP2210::getGPIODirection(uint8_t gpio, int &errcnt, std::string &errstr)
     bool direction;
     if (gpio > 7) {
         ++errcnt;
-        errstr += "In getGPIODirection(): GPIO pin value must be between 0 and 7.\n";  // Program logic error
+        errstr += "In getGPIODirection(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         direction = false;
     } else {
         direction = (0x01 << gpio & getGPIODirections(errcnt, errstr)) != 0x00;
@@ -464,7 +464,7 @@ uint8_t MCP2210::setGPIO(uint8_t gpio, bool value, int &errcnt, std::string &err
     uint8_t retval;
     if (gpio > 7) {
         ++errcnt;
-        errstr += "In setGPIO(): GPIO pin value must be between 0 and 7.\n";  // Program logic error
+        errstr += "In setGPIO(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
         uint16_t values = getGPIOs(errcnt, errstr);
@@ -485,7 +485,7 @@ uint8_t MCP2210::setGPIODirection(uint8_t gpio, bool direction, int &errcnt, std
     uint8_t retval;
     if (gpio > 7) {
         ++errcnt;
-        errstr += "In setGPIODirection(): GPIO pin value must be between 0 and 7.\n";  // Program logic error
+        errstr += "In setGPIODirection(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
         uint8_t directions = getGPIODirections(errcnt, errstr);
