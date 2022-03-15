@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.16.1
+/* MCP2210 class - Version 0.17.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -213,6 +213,8 @@ public:
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
+    uint8_t setGPIO(uint8_t gpio, bool value, int &errcnt, std::string &errstr);
+    uint8_t setGPIODirection(uint8_t gpio, bool direction, int &errcnt, std::string &errstr);
     uint8_t setGPIODirections(uint8_t directions, int &errcnt, std::string &errstr);
     uint8_t setGPIOs(uint16_t values, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);

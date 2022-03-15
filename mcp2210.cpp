@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.16.1
+/* MCP2210 class - Version 0.17.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -456,6 +456,48 @@ std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &e
         }
     }
     return values;
+}
+
+// Sets the value of a given GPIO pin on the MCP2210
+uint8_t MCP2210::setGPIO(uint8_t gpio, bool value, int &errcnt, std::string &errstr)
+{
+    uint8_t retval;
+    if (gpio > 7) {
+        ++errcnt;
+        errstr += "In setGPIO(): GPIO pin value must be between 0 and 7.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else {
+        uint16_t values = getGPIOs(errcnt, errstr);
+        uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
+        if (value) {
+            values |= mask;
+        } else {
+            values &= ~mask;
+        }
+        retval = setGPIOs(values, errcnt, errstr);
+    }
+    return retval;
+}
+
+// Sets the direction of a given GPIO pin on the MCP2210
+uint8_t MCP2210::setGPIODirection(uint8_t gpio, bool direction, int &errcnt, std::string &errstr)
+{
+    uint8_t retval;
+    if (gpio > 7) {
+        ++errcnt;
+        errstr += "In setGPIODirection(): GPIO pin value must be between 0 and 7.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else {
+        uint8_t directions = getGPIODirections(errcnt, errstr);
+        uint8_t mask = static_cast<uint8_t>(0x01 << gpio);
+        if (direction) {
+            directions |= mask;
+        } else {
+            directions &= ~mask;
+        }
+        retval = setGPIODirections(directions, errcnt, errstr);
+    }
+    return retval;
 }
 
 // Sets the directions of all GPIO pins on the MCP2210
