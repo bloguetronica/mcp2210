@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.17.1
+/* MCP2210 class - Version 0.17.2
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -224,7 +224,7 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
     settings.gpdir = response[15];                                      // Default GPIO directions (GPIO7 to GPIO0) corresponds to byte 15
     settings.gpout = response[13];                                      // Default GPIO outputs (GPIO7 to GPIO0) corresponds to byte 13
     settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
-    settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
+    settings.intmode = static_cast<uint8_t>(0x07 & response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
     return settings;
 }
@@ -303,7 +303,7 @@ MCP2210::ChipSettings MCP2210::getNVChipSettings(int &errcnt, std::string &errst
     settings.gpdir = response[15];                                      // Default GPIO directions (GPIO7 to GPIO0) corresponds to byte 15
     settings.gpout = response[13];                                      // Default GPIO outputs (GPIO7 to GPIO0) corresponds to byte 13
     settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
-    settings.intmode = 0x07 & static_cast<uint8_t>(response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
+    settings.intmode = static_cast<uint8_t>(0x07 & response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
     return settings;
 }
@@ -470,9 +470,9 @@ uint8_t MCP2210::setGPIO(uint8_t gpio, bool value, int &errcnt, std::string &err
         uint16_t values = getGPIOs(errcnt, errstr);
         uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
         if (value) {
-            values |= mask;
+            values = static_cast<uint16_t>(values | mask);
         } else {
-            values &= ~mask;
+            values = static_cast<uint16_t>(values & ~mask);
         }
         retval = setGPIOs(values, errcnt, errstr);
     }
@@ -491,9 +491,9 @@ uint8_t MCP2210::setGPIODirection(uint8_t gpio, bool direction, int &errcnt, std
         uint8_t directions = getGPIODirections(errcnt, errstr);
         uint8_t mask = static_cast<uint8_t>(0x01 << gpio);
         if (direction) {
-            directions |= mask;
+            directions = static_cast<uint8_t>(directions | mask);
         } else {
-            directions &= ~mask;
+            directions = static_cast<uint8_t>(directions & ~mask);
         }
         retval = setGPIODirections(directions, errcnt, errstr);
     }
