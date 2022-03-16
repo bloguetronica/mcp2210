@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.18.0
+/* MCP2210 class - Version 0.18.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -469,10 +469,10 @@ uint8_t MCP2210::setGPIO(int gpio, bool value, int &errcnt, std::string &errstr)
     } else {
         uint16_t values = getGPIOs(errcnt, errstr);
         uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
-        if (value) {  // If GPIO value is set to be high
-            values = static_cast<uint16_t>(mask | values);  // Set selected GPIO high
+        if (value) {  // If the selected GPIO pin value is set to be high
+            values = static_cast<uint16_t>(mask | values);  // Set pin high
         } else {
-            values = static_cast<uint16_t>(~mask & values);  // Set selected GPIO low
+            values = static_cast<uint16_t>(~mask & values);  // Set pin low
         }
         retval = setGPIOs(values, errcnt, errstr);
     }
@@ -490,10 +490,10 @@ uint8_t MCP2210::setGPIODirection(int gpio, bool direction, int &errcnt, std::st
     } else {
         uint8_t directions = getGPIODirections(errcnt, errstr);
         uint8_t mask = static_cast<uint8_t>(0x01 << gpio);
-        if (direction) {  // If GPIO pin is to be used as an input
-            directions = static_cast<uint8_t>(mask | directions);  // Set selected GPIO direction as input
+        if (direction) {  // If the selected GPIO pin is to be used as an input
+            directions = static_cast<uint8_t>(mask | directions);  // Set pin as input
         } else {
-            directions = static_cast<uint8_t>(~mask & directions);  // Set selected GPIO direction as output
+            directions = static_cast<uint8_t>(~mask & directions);  // Set pin as output
         }
         retval = setGPIODirections(directions, errcnt, errstr);
     }
@@ -533,10 +533,10 @@ uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
     } else {
         uint16_t values = getGPIOs(errcnt, errstr);
         uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
-        if ((mask & values) == 0x0000) {  // If selected GPIO is low
-            values = static_cast<uint16_t>(mask | values);  // Toggle selected GPIO high
+        if ((mask & values) == 0x0000) {  // If the selected GPIO pin is low
+            values = static_cast<uint16_t>(mask | values);  // Toggle pin high
         } else {
-            values = static_cast<uint16_t>(~mask & values);  // Toggle selected GPIO low
+            values = static_cast<uint16_t>(~mask & values);  // Toggle pin low
         }
         retval = setGPIOs(values, errcnt, errstr);
     }
