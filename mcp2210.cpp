@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.17.2
+/* MCP2210 class - Version 0.18.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -230,10 +230,10 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
 }
 
 // Returns the value of a given GPIO pin on the MCP2210
-bool MCP2210::getGPIO(uint8_t gpio, int &errcnt, std::string &errstr)
+bool MCP2210::getGPIO(int gpio, int &errcnt, std::string &errstr)
 {
     bool value;
-    if (gpio > 8) {
+    if (gpio < 0 || gpio > 8) {
         ++errcnt;
         errstr += "In getGPIO(): GPIO pin number must be between 0 and 8.\n";  // Program logic error
         value = false;
@@ -244,10 +244,10 @@ bool MCP2210::getGPIO(uint8_t gpio, int &errcnt, std::string &errstr)
 }
 
 // Returns the direction of a given GPIO pin on the MCP2210
-bool MCP2210::getGPIODirection(uint8_t gpio, int &errcnt, std::string &errstr)
+bool MCP2210::getGPIODirection(int gpio, int &errcnt, std::string &errstr)
 {
     bool direction;
-    if (gpio > 7) {
+    if (gpio < 0 || gpio > 7) {
         ++errcnt;
         errstr += "In getGPIODirection(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         direction = false;
@@ -459,20 +459,20 @@ std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &e
 }
 
 // Sets the value of a given GPIO pin on the MCP2210
-uint8_t MCP2210::setGPIO(uint8_t gpio, bool value, int &errcnt, std::string &errstr)
+uint8_t MCP2210::setGPIO(int gpio, bool value, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
-    if (gpio > 7) {
+    if (gpio < 0 || gpio > 7) {
         ++errcnt;
         errstr += "In setGPIO(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
         uint16_t values = getGPIOs(errcnt, errstr);
         uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
-        if (value) {
-            values = static_cast<uint16_t>(values | mask);
+        if (value) {  // If GPIO value is set to be high
+            values = static_cast<uint16_t>(mask | values);  // Set selected GPIO high
         } else {
-            values = static_cast<uint16_t>(values & ~mask);
+            values = static_cast<uint16_t>(~mask & values);  // Set selected GPIO low
         }
         retval = setGPIOs(values, errcnt, errstr);
     }
@@ -480,20 +480,20 @@ uint8_t MCP2210::setGPIO(uint8_t gpio, bool value, int &errcnt, std::string &err
 }
 
 // Sets the direction of a given GPIO pin on the MCP2210
-uint8_t MCP2210::setGPIODirection(uint8_t gpio, bool direction, int &errcnt, std::string &errstr)
+uint8_t MCP2210::setGPIODirection(int gpio, bool direction, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
-    if (gpio > 7) {
+    if (gpio < 0 || gpio > 7) {
         ++errcnt;
         errstr += "In setGPIODirection(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
         uint8_t directions = getGPIODirections(errcnt, errstr);
         uint8_t mask = static_cast<uint8_t>(0x01 << gpio);
-        if (direction) {
-            directions = static_cast<uint8_t>(directions | mask);
+        if (direction) {  // If GPIO pin is to be used as an input
+            directions = static_cast<uint8_t>(mask | directions);  // Set selected GPIO direction as input
         } else {
-            directions = static_cast<uint8_t>(directions & ~mask);
+            directions = static_cast<uint8_t>(~mask & directions);  // Set selected GPIO direction as output
         }
         retval = setGPIODirections(directions, errcnt, errstr);
     }
@@ -520,6 +520,27 @@ uint8_t MCP2210::setGPIOs(uint16_t values, int &errcnt, std::string &errstr)
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     return response[1];
+}
+
+// Toggles (inverts the value of) a given GPIO pin on the MCP2210
+uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
+{
+        uint8_t retval;
+    if (gpio < 0 || gpio > 7) {
+        ++errcnt;
+        errstr += "In toggleGPIO(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else {
+        uint16_t values = getGPIOs(errcnt, errstr);
+        uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
+        if ((mask & values) == 0x0000) {  // If selected GPIO is low
+            values = static_cast<uint16_t>(mask | values);  // Toggle selected GPIO high
+        } else {
+            values = static_cast<uint16_t>(~mask & values);  // Toggle selected GPIO low
+        }
+        retval = setGPIOs(values, errcnt, errstr);
+    }
+    return retval;
 }
 
 // Writes a byte to a given EEPROM address

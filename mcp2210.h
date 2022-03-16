@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.17.2
+/* MCP2210 class - Version 0.18.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -156,6 +156,25 @@ public:
     static const uint8_t SPIMODE2 = 0x02;     // Value corresponding to SPI mode 2
     static const uint8_t SPIMODE3 = 0x03;     // Value corresponding to SPI mode 3
 
+    // The following values are useful as valid GPIO pin numbers
+    static const int GPIO0 = 0;  // Pin number of GPIO0
+    static const int GPIO1 = 1;  // Pin number of GPIO1
+    static const int GPIO2 = 2;  // Pin number of GPIO2
+    static const int GPIO3 = 3;  // Pin number of GPIO3
+    static const int GPIO4 = 4;  // Pin number of GPIO4
+    static const int GPIO5 = 5;  // Pin number of GPIO5
+    static const int GPIO6 = 6;  // Pin number of GPIO6
+    static const int GPIO7 = 7;  // Pin number of GPIO7
+    static const int GPIO8 = 8;  // Pin number of GPIO8 (only valid for getGPIO(), since GPIO8 is an input only pin)
+
+    // The following values are applicable to getGPIO() and setGPIO()
+    static const bool PINLOW = false;
+    static const bool PINHIGH = true;
+
+    // The following values are applicable to getGPIODirection() and setGPIODirection()
+    static const bool DIROUTPUT = false;
+    static const bool DIRINPUT = true;
+
     struct ChipSettings {
         uint8_t gp0;      // GP0 pin configuration
         uint8_t gp1;      // GP1 pin configuration
@@ -200,8 +219,8 @@ public:
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
-    bool getGPIO(uint8_t gpio, int &errcnt, std::string &errstr);
-    bool getGPIODirection(uint8_t gpio, int &errcnt, std::string &errstr);
+    bool getGPIO(int gpio, int &errcnt, std::string &errstr);
+    bool getGPIODirection(int gpio, int &errcnt, std::string &errstr);
     uint8_t getGPIODirections(int &errcnt, std::string &errstr);
     uint16_t getGPIOs(int &errcnt, std::string &errstr);
     std::u16string getManufacturerDesc(int &errcnt, std::string &errstr);
@@ -213,10 +232,11 @@ public:
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
-    uint8_t setGPIO(uint8_t gpio, bool value, int &errcnt, std::string &errstr);
-    uint8_t setGPIODirection(uint8_t gpio, bool direction, int &errcnt, std::string &errstr);
+    uint8_t setGPIO(int gpio, bool value, int &errcnt, std::string &errstr);
+    uint8_t setGPIODirection(int gpio, bool direction, int &errcnt, std::string &errstr);
     uint8_t setGPIODirections(uint8_t directions, int &errcnt, std::string &errstr);
     uint8_t setGPIOs(uint16_t values, int &errcnt, std::string &errstr);
+    uint8_t toggleGPIO(int gpio, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
     uint8_t writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
