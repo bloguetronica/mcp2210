@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.18.1
+/* MCP2210 class - Version 0.18.2
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -178,7 +178,7 @@ uint8_t MCP2210::configureChipSettings(const ChipSettings &settings, int &errcnt
         settings.gp7,                                                                                     // GP7 pin configuration
         settings.gp8,                                                                                     // GP8 pin configuration
         settings.gpout, 0x00,                                                                             // Default GPIO outputs (GPIO7 to GPIO0)
-        settings.gpdir, 0x00,                                                                             // Default GPIO directions (GPIO7 to GPIO0)
+        settings.gpdir, 0x01,                                                                             // Default GPIO directions (GPIO7 to GPIO0)
         static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi)  // Other chip settings
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -594,7 +594,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, 
         settings.gp7,                                                                                     // GP7 pin configuration
         settings.gp8,                                                                                     // GP8 pin configuration
         settings.gpout, 0x00,                                                                             // Default GPIO outputs (GPIO7 to GPIO0)
-        settings.gpdir, 0x00,                                                                             // Default GPIO directions (GPIO7 to GPIO0)
+        settings.gpdir, 0x01,                                                                             // Default GPIO directions (GPIO7 to GPIO0)
         static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi)  // Other chip settings
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
