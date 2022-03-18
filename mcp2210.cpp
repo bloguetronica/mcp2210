@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.18.2
+/* MCP2210 class - Version 0.19.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -124,6 +124,18 @@ bool MCP2210::SPISettings::operator !=(const MCP2210::SPISettings &other) const
     return !(operator ==(other));
 }
 
+// "Equal to" operator for USBParameters
+bool MCP2210::USBParameters::operator ==(const MCP2210::USBParameters &other) const
+{
+    return vid == other.vid && pid == other.pid && maxpow == other.maxpow && powmode == other.powmode && rmwakeup == other.rmwakeup;
+}
+
+// "Not equal to" operator for USBParameters
+bool MCP2210::USBParameters::operator !=(const MCP2210::USBParameters &other) const
+{
+    return !(operator ==(other));
+}
+
 MCP2210::MCP2210() :
     context_(nullptr),
     handle_(nullptr),
@@ -223,7 +235,7 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
     settings.gp8 = response[12];                                        // GP8 pin configuration corresponds to byte 12
     settings.gpdir = response[15];                                      // Default GPIO directions (GPIO7 to GPIO0) corresponds to byte 15
     settings.gpout = response[13];                                      // Default GPIO outputs (GPIO7 to GPIO0) corresponds to byte 13
-    settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
+    settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wakeup corresponds to bit 4 of byte 17
     settings.intmode = static_cast<uint8_t>(0x07 & response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
     return settings;
@@ -302,7 +314,7 @@ MCP2210::ChipSettings MCP2210::getNVChipSettings(int &errcnt, std::string &errst
     settings.gp8 = response[12];                                        // GP8 pin configuration corresponds to byte 12
     settings.gpdir = response[15];                                      // Default GPIO directions (GPIO7 to GPIO0) corresponds to byte 15
     settings.gpout = response[13];                                      // Default GPIO outputs (GPIO7 to GPIO0) corresponds to byte 13
-    settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wake-up corresponds to bit 4 of byte 17
+    settings.rmwakeup = (0x10 & response[17]) != 0x00;                  // Remote wakeup corresponds to bit 4 of byte 17
     settings.intmode = static_cast<uint8_t>(0x07 & response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
     return settings;
@@ -319,8 +331,8 @@ MCP2210::SPISettings MCP2210::getNVSPISettings(int &errcnt, std::string &errstr)
     settings.nbytes = static_cast<uint16_t>(response[19] << 8 | response[18]);                                         // Number of bytes per SPI transfer corresponds to bytes 18 and 19 (little-endian conversion)
     settings.bitrate = static_cast<uint32_t>(response[7] << 24 | response[6] << 16 | response[5] << 8 | response[4]);  // Bit rate corresponds to bytes 4 to 7 (little-endian conversion)
     settings.mode = response[20];                                                                                      // SPI mode corresponds to byte 20
-    settings.actcs = response[10];                                                                                     // Active chip select (CS7 to CS0) corresponds to bytes 10 and 11
-    settings.idlcs = response[8];                                                                                      // Idle chip select (CS7 to CS0) corresponds to bytes 8 and 9
+    settings.actcs = response[10];                                                                                     // Active chip select (CS7 to CS0) corresponds to byte 10
+    settings.idlcs = response[8];                                                                                      // Idle chip select (CS7 to CS0) corresponds to byte 8
     settings.csdtdly = static_cast<uint16_t>(response[13] << 8 | response[12]);                                        // Chip select to data corresponds to bytes 12 and 13 (little-endian conversion)
     settings.dtcsdly = static_cast<uint16_t>(response[15] << 8 | response[14]);                                        // Data to chip select delay corresponds to bytes 14 and 15 (little-endian conversion)
     settings.itbytdly = static_cast<uint16_t>(response[17] << 8 | response[16]);                                       // Inter-byte delay corresponds to bytes 16 and 17 (little-endian conversion)
@@ -344,12 +356,28 @@ MCP2210::SPISettings MCP2210::getSPISettings(int &errcnt, std::string &errstr)
     settings.nbytes = static_cast<uint16_t>(response[19] << 8 | response[18]);                                         // Number of bytes per SPI transfer corresponds to bytes 18 and 19 (little-endian conversion)
     settings.bitrate = static_cast<uint32_t>(response[7] << 24 | response[6] << 16 | response[5] << 8 | response[4]);  // Bit rate corresponds to bytes 4 to 7 (little-endian conversion)
     settings.mode = response[20];                                                                                      // SPI mode corresponds to byte 20
-    settings.actcs = response[10];                                                                                     // Active chip select (CS7 to CS0) corresponds to bytes 10 and 11
-    settings.idlcs = response[8];                                                                                      // Idle chip select (CS7 to CS0) corresponds to bytes 8 and 9
+    settings.actcs = response[10];                                                                                     // Active chip select (CS7 to CS0) corresponds to byte 10
+    settings.idlcs = response[8];                                                                                      // Idle chip select (CS7 to CS0) corresponds to byte 8
     settings.csdtdly = static_cast<uint16_t>(response[13] << 8 | response[12]);                                        // Chip select to data corresponds to bytes 12 and 13 (little-endian conversion)
     settings.dtcsdly = static_cast<uint16_t>(response[15] << 8 | response[14]);                                        // Data to chip select delay corresponds to bytes 14 and 15 (little-endian conversion)
     settings.itbytdly = static_cast<uint16_t>(response[17] << 8 | response[16]);                                       // Inter-byte delay corresponds to bytes 16 and 17 (little-endian conversion)
     return settings;
+}
+
+// Gets the USB parameters, namely VID, PID and power settings
+MCP2210::USBParameters MCP2210::getUSBParameters(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_NVRAM_SETTINGS, USB_PARAMETERS  // Header
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    USBParameters parameters;
+    parameters.vid = static_cast<uint16_t>(response[13] << 8 | response[12]);  // Vendor ID corresponds to bytes 12 and 13 (little-endian conversion)
+    parameters.pid = static_cast<uint32_t>(response[15] << 8 | response[14]);  // Product ID corresponds to bytes 14 and 15 (little-endian conversion)
+    parameters.maxpow = response[30];                                          // Maximum consumption current corresponds to byte 30
+    parameters.powmode = (0x80 & response[29]) != 0x00;                        // Power mode corresponds to bit 7 of byte 29 (bit 6 is redundant)
+    parameters.rmwakeup = (0x20 & response[29]) != 0x00;                       // Remote wakeup corresponds to bit 5 of byte 29
+    return parameters;
 }
 
 // Sends a HID command based on the given vector, and returns the response
@@ -579,6 +607,20 @@ uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<
     return retval;
 }
 
+// Writes the manufacturer descriptor to the MCP2210 OTP NVRAM
+uint8_t MCP2210::writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr)
+{
+    uint8_t retval;
+    if (manufacturer.size() > DESC_MAXLEN) {
+        ++errcnt;
+        errstr += "In writeManufacturerDesc(): manufacturer descriptor string cannot be longer than 28 characters.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else {
+        retval = writeDescGeneric(manufacturer, MANUFACTURER_NAME, errcnt, errstr);
+    }
+    return retval;
+}
+
 // Writes the given chip transfer settings to the MCP2210 OTP NVRAM
 uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
 {
@@ -620,20 +662,6 @@ uint8_t MCP2210::writeNVSPISettings(const SPISettings &settings, int &errcnt, st
     return response[1];
 }
 
-// Writes the manufacturer descriptor to the MCP2210 OTP NVRAM
-uint8_t MCP2210::writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr)
-{
-    uint8_t retval;
-    if (manufacturer.size() > DESC_MAXLEN) {
-        ++errcnt;
-        errstr += "In writeManufacturerDesc(): manufacturer descriptor string cannot be longer than 28 characters.\n";  // Program logic error
-        retval = OTHER_ERROR;
-    } else {
-        retval = writeDescGeneric(manufacturer, MANUFACTURER_NAME, errcnt, errstr);
-    }
-    return retval;
-}
-
 // Writes the product descriptor to the MCP2210 OTP NVRAM
 uint8_t MCP2210::writeProductDesc(const std::u16string &product, int &errcnt, std::string &errstr)
 {
@@ -646,6 +674,20 @@ uint8_t MCP2210::writeProductDesc(const std::u16string &product, int &errcnt, st
         retval = writeDescGeneric(product, PRODUCT_NAME, errcnt, errstr);
     }
     return retval;
+}
+
+// Writes the USB parameters to the MCP2210 OTP NVRAM
+uint8_t MCP2210::writeUSBParameters(const USBParameters &parameters, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        SET_NVRAM_SETTINGS, USB_PARAMETERS, 0x00, 0x00,                                                       // Header
+        static_cast<uint8_t>(parameters.vid), static_cast<uint8_t>(parameters.vid >> 8),                      // Vendor ID
+        static_cast<uint8_t>(parameters.pid), static_cast<uint8_t>(parameters.pid >> 8),                      // Product ID
+        static_cast<uint8_t>(parameters.powmode << 7 | !parameters.powmode << 6 | parameters.rmwakeup << 5),  // Chip power options
+        parameters.maxpow                                                                                     // Maximum consumption current
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[1];
 }
 
 // Helper function to list devices

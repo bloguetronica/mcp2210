@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.18.2
+/* MCP2210 class - Version 0.19.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -73,6 +73,7 @@ public:
     // NVRAM settings sub-command IDs
     static const uint8_t NV_SPI_SETTINGS = 0x10;    // Power-up (non-volatile) SPI transfer settings
     static const uint8_t NV_CHIP_SETTINGS = 0x20;   // Power-up (non-volatile) chip settings
+    static const uint8_t USB_PARAMETERS = 0x30;     // USB parameters
     static const uint8_t PRODUCT_NAME = 0x40;       // USB product name
     static const uint8_t MANUFACTURER_NAME = 0x50;  // USB manufacturer name
 
@@ -87,7 +88,7 @@ public:
     static const uint8_t WRONG_PASSWORD = 0xfd;  // Wrong password (number of attempts is still within the limit)
     static const uint8_t OTHER_ERROR = 0xff;     // Other error (check errcnt and errstr for details)
 
-    // The following values are applicable to SPISettings/configureChipSettings()/getChipSettings()
+    // The following values are applicable to ChipSettings/configureChipSettings()/getChipSettings()
     static const uint8_t PCGPIO = 0x00;   // Pin configured as GPIO
     static const uint8_t PCCS = 0x01;     // Pin configured as chip select
     static const uint8_t PCFUNC = 0x02;   // Pin configured as a dedicated function pin
@@ -175,6 +176,10 @@ public:
     static const bool DIROUTPUT = false;
     static const bool DIRINPUT = true;
 
+    // The following values are applicable to USBParameters/getUSBParameters()/writeUSBParameters()
+    static const bool PMBUS = false;  // Value corresponding to USB bus-powered mode
+    static const bool PMSELF = true;  // Value corresponding to USB self-powered mode
+
     struct ChipSettings {
         uint8_t gp0;      // GP0 pin configuration
         uint8_t gp1;      // GP1 pin configuration
@@ -187,7 +192,7 @@ public:
         uint8_t gp8;      // GP8 pin configuration
         uint8_t gpdir;    // Default GPIO directions (CS7 to CS0)
         uint8_t gpout;    // Default GPIO outputs (CS7 to CS0)
-        bool rmwakeup;    // Remote wake-up
+        bool rmwakeup;    // Remote wakeup
         uint8_t intmode;  // Interrupt counting mode
         bool nrelspi;     // SPI bus release (negated)
 
@@ -209,6 +214,17 @@ public:
         bool operator !=(const SPISettings &other) const;
     };
 
+    struct USBParameters {
+        uint16_t vid;    // Vendor ID
+        uint16_t pid;    // Product ID
+        uint8_t maxpow;  // Maximum consumption current (raw value un 2mA units)
+        bool powmode;    // Power mode (false for bus-powered, true for self-powered)
+        bool rmwakeup;   // Remote wakeup
+
+        bool operator ==(const USBParameters &other) const;
+        bool operator !=(const USBParameters &other) const;
+    };
+
     MCP2210();
     ~MCP2210();
 
@@ -228,6 +244,7 @@ public:
     SPISettings getNVSPISettings(int &errcnt, std::string &errstr);
     std::u16string getProductDesc(int &errcnt, std::string &errstr);
     SPISettings getSPISettings(int &errcnt, std::string &errstr);
+    USBParameters getUSBParameters(int &errcnt, std::string &errstr);
     std::vector<uint8_t> hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr);
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
@@ -243,6 +260,7 @@ public:
     uint8_t writeNVSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     uint8_t writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr);
     uint8_t writeProductDesc(const std::u16string &product, int &errcnt, std::string &errstr);
+    uint8_t writeUSBParameters(const USBParameters &parameters, int &errcnt, std::string &errstr);
 
     static std::vector<std::string> listDevices(uint16_t vid, uint16_t pid, int &errcnt, std::string &errstr);
 };
