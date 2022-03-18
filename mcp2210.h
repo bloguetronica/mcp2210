@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.19.0
+/* MCP2210 class - Version 0.20.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -57,6 +57,7 @@ public:
     static const uint8_t EEPROM_END = 0xff;    // EEPROM last address
 
     // HID command IDs
+    static const uint8_t GET_EVENT_COUNT = 0x12;      // Get event count
     static const uint8_t GET_CHIP_SETTINGS = 0x20;    // Get chip settings
     static const uint8_t SET_CHIP_SETTINGS = 0x21;    // Set chip settings
     static const uint8_t SET_GPIO_VALUES = 0x30;      // Set GPIO pin values
@@ -235,6 +236,7 @@ public:
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
+    uint16_t getEventCount(int &errcnt, std::string &errstr);
     bool getGPIO(int gpio, int &errcnt, std::string &errstr);
     bool getGPIODirection(int gpio, int &errcnt, std::string &errstr);
     uint8_t getGPIODirections(int &errcnt, std::string &errstr);
@@ -249,6 +251,7 @@ public:
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
+    uint8_t resetEventCounter(int &errcnt, std::string &errstr);
     uint8_t setGPIO(int gpio, bool value, int &errcnt, std::string &errstr);
     uint8_t setGPIODirection(int gpio, bool direction, int &errcnt, std::string &errstr);
     uint8_t setGPIODirections(uint8_t directions, int &errcnt, std::string &errstr);

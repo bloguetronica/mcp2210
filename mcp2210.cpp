@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.19.0
+/* MCP2210 class - Version 0.20.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -239,6 +239,17 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
     settings.intmode = static_cast<uint8_t>(0x07 & response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
     return settings;
+}
+
+// Gets the number of events from the interrupt pin
+uint16_t MCP2210::getEventCount(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_EVENT_COUNT,  // Header
+        0x01              // Do not reset the event counter
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return static_cast<uint16_t>(response[5] << 8 | response[4]);  // Event count corresponds to bytes 4 and 5 (little-endian conversion)
 }
 
 // Returns the value of a given GPIO pin on the MCP2210
@@ -484,6 +495,17 @@ std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &e
         }
     }
     return values;
+}
+
+// Resets the interrupt event counter
+uint8_t MCP2210::resetEventCounter(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_EVENT_COUNT,  // Header
+        0x00              // Reset the event counter
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[1];
 }
 
 // Sets the value of a given GPIO pin on the MCP2210
