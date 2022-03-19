@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.20.0
+/* MCP2210 class - Version 0.20.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -488,7 +488,7 @@ std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &e
         for (size_t i = begin; i <= end; ++i) {
             int preverrcnt = errcnt;
             uint8_t value = readEEPROMByte(static_cast<uint8_t>(i), errcnt, errstr);
-            if (errcnt > preverrcnt) {  // If an error occurs
+            if (errcnt != preverrcnt) {  // If an error occurs
                 break;  // Abort
             }
             values.push_back(value);
@@ -517,14 +517,19 @@ uint8_t MCP2210::setGPIO(int gpio, bool value, int &errcnt, std::string &errstr)
         errstr += "In setGPIO(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
+        int preverrcnt = errcnt;
         uint16_t values = getGPIOs(errcnt, errstr);
-        uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
-        if (value) {  // If the selected GPIO pin value is set to be high
-            values = static_cast<uint16_t>(mask | values);  // Set pin high
+        if (errcnt == preverrcnt) {
+            uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
+            if (value) {  // If the selected GPIO pin value is set to be high
+                values = static_cast<uint16_t>(mask | values);  // Set pin high
+            } else {
+                values = static_cast<uint16_t>(~mask & values);  // Set pin low
+            }
+            retval = setGPIOs(values, errcnt, errstr);
         } else {
-            values = static_cast<uint16_t>(~mask & values);  // Set pin low
+            retval = OTHER_ERROR;
         }
-        retval = setGPIOs(values, errcnt, errstr);
     }
     return retval;
 }
@@ -538,14 +543,19 @@ uint8_t MCP2210::setGPIODirection(int gpio, bool direction, int &errcnt, std::st
         errstr += "In setGPIODirection(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
+        int preverrcnt = errcnt;
         uint8_t directions = getGPIODirections(errcnt, errstr);
-        uint8_t mask = static_cast<uint8_t>(0x01 << gpio);
-        if (direction) {  // If the selected GPIO pin is to be used as an input
-            directions = static_cast<uint8_t>(mask | directions);  // Set pin as input
+        if (errcnt == preverrcnt) {
+            uint8_t mask = static_cast<uint8_t>(0x01 << gpio);
+            if (direction) {  // If the selected GPIO pin is to be used as an input
+                directions = static_cast<uint8_t>(mask | directions);  // Set pin as input
+            } else {
+                directions = static_cast<uint8_t>(~mask & directions);  // Set pin as output
+            }
+            retval = setGPIODirections(directions, errcnt, errstr);
         } else {
-            directions = static_cast<uint8_t>(~mask & directions);  // Set pin as output
+            retval = OTHER_ERROR;
         }
-        retval = setGPIODirections(directions, errcnt, errstr);
     }
     return retval;
 }
@@ -581,14 +591,19 @@ uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
         errstr += "In toggleGPIO(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
+        int preverrcnt = errcnt;
         uint16_t values = getGPIOs(errcnt, errstr);
-        uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
-        if ((mask & values) == 0x0000) {  // If the selected GPIO pin is low
-            values = static_cast<uint16_t>(mask | values);  // Toggle pin high
+        if (errcnt == preverrcnt) {
+            uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
+            if ((mask & values) == 0x0000) {  // If the selected GPIO pin is low
+                values = static_cast<uint16_t>(mask | values);  // Toggle pin high
+            } else {
+                values = static_cast<uint16_t>(~mask & values);  // Toggle pin low
+            }
+            retval = setGPIOs(values, errcnt, errstr);
         } else {
-            values = static_cast<uint16_t>(~mask & values);  // Toggle pin low
+            retval = OTHER_ERROR;
         }
-        retval = setGPIOs(values, errcnt, errstr);
     }
     return retval;
 }
@@ -621,7 +636,7 @@ uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<
         for (size_t i = 0; i < values.size(); ++i) {
             int preverrcnt = errcnt;
             retval = writeEEPROMByte(static_cast<uint8_t>(begin + i), values[i], errcnt, errstr);
-            if (errcnt > preverrcnt || retval != COMPLETED) {  // If an error occurs
+            if (errcnt != preverrcnt || retval != COMPLETED) {  // If an error occurs
                 break;  // Abort
             }
         }
