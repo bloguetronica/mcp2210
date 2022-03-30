@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.20.1
+/* MCP2210 class - Version 0.21.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -111,6 +111,17 @@ bool MCP2210::ChipSettings::operator !=(const MCP2210::ChipSettings &other) cons
     return !(operator ==(other));
 }
 
+// "Equal to" operator for ChipStatus
+bool MCP2210::ChipStatus::operator ==(const MCP2210::ChipStatus &other) const
+{
+    return busreq == other.busreq && busowner == other.busowner && pwtries == other.pwtries && pwok == other.pwok;
+}
+
+// "Not equal to" operator for ChipStatus
+bool MCP2210::ChipStatus::operator !=(const MCP2210::ChipStatus &other) const
+{
+    return !(operator ==(other));
+}
 
 // "Equal to" operator for SPISettings
 bool MCP2210::SPISettings::operator ==(const MCP2210::SPISettings &other) const
@@ -159,6 +170,16 @@ bool MCP2210::disconnected() const
 bool MCP2210::isOpen() const
 {
     return handle_ != nullptr;  // Returns true if the device is open, or false otherwise
+}
+
+// Cancels the ongoing SPI transfer
+uint8_t MCP2210::cancelSPITransfer(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        CANCEL_SPI_TRANSFER  // Header
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[1];
 }
 
 // Closes the device safely, if open
@@ -239,6 +260,21 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
     settings.intmode = static_cast<uint8_t>(0x07 & response[17] >> 1);  // Interrupt counting mode corresponds to bits 3:1 of byte 17
     settings.nrelspi = (0x01 & response[17]) != 0x00;                   // SPI bus release corresponds to bit 0 of byte 17
     return settings;
+}
+
+// Returns the current status
+MCP2210::ChipStatus MCP2210::getChipStatus(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_CHIP_STATUS  // Header
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    ChipStatus status;
+    status.busreq = response[2] != 0x01;  // SPI bus release external request status corresponds to byte 2
+    status.busowner = response[3];        // SPI bus current owner corresponds to byte 3
+    status.pwtries = response[4];         // Number of NVRAM password tries corresponds to byte 4
+    status.pwok = response[5] != 0x00;    // Password validation status corresponds to byte 5
+    return status;
 }
 
 // Gets the number of events from the interrupt pin

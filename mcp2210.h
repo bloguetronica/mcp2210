@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.20.1
+/* MCP2210 class - Version 0.21.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -57,6 +57,8 @@ public:
     static const uint8_t EEPROM_END = 0xff;    // EEPROM last address
 
     // HID command IDs
+    static const uint8_t GET_CHIP_STATUS = 0x10;      // Get chip status
+    static const uint8_t CANCEL_SPI_TRANSFER = 0x11;  // Cancel ongoing SPI transfer
     static const uint8_t GET_EVENT_COUNT = 0x12;      // Get event count
     static const uint8_t GET_CHIP_SETTINGS = 0x20;    // Get chip settings
     static const uint8_t SET_CHIP_SETTINGS = 0x21;    // Set chip settings
@@ -98,6 +100,15 @@ public:
     static const uint8_t IMCNTRE = 0x02;  // Interrupt mode set to count rising edges
     static const uint8_t IMCNTLP = 0x03;  // Interrupt mode set to count low pulses
     static const uint8_t IMCNTHP = 0x04;  // Interrupt mode set to count high pulses
+
+    // The following values are applicable to ChipStatus/getChipStatus()
+    static const bool REQNO = false;    // No external request for SPI bus release
+    static const bool REQPEND = true;   // Pending external request for SPI bus release
+    static const uint8_t BONO = 0x00;   // SPI bus has no owner
+    static const uint8_t BOOWN = 0x01;  // SPI bus owned by this master
+    static const uint8_t BOEXT = 0x02;  // SPI bus owned by external master
+    static const bool PWNO = false;     // Password not guessed
+    static const bool PWOK = true;      // Password guessed
 
     // The following values are applicable to SPISettings/configureSPISettings()/getSPISettings()
     static const uint32_t BRT1K464 = 1464;    // Value corresponding to a bit rate of 1.464Kbps
@@ -201,6 +212,16 @@ public:
         bool operator !=(const ChipSettings &other) const;
     };
 
+    struct ChipStatus {
+        bool busreq;       // SPI bus release external request status (false for no request, true for pending request)
+        uint8_t busowner;  // SPI bus current owner
+        uint8_t pwtries;   // Number of NVRAM password tries
+        bool pwok;         // Password validation status
+
+        bool operator ==(const ChipStatus &other) const;
+        bool operator !=(const ChipStatus &other) const;
+    };
+
     struct SPISettings {
         uint16_t nbytes;    // Number of bytes per SPI transaction
         uint32_t bitrate;   // Bit rate
@@ -232,10 +253,12 @@ public:
     bool disconnected() const;
     bool isOpen() const;
 
+    uint8_t cancelSPITransfer(int &errcnt, std::string &errstr);
     void close();
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
+    ChipStatus getChipStatus(int &errcnt, std::string &errstr);
     uint16_t getEventCount(int &errcnt, std::string &errstr);
     bool getGPIO(int gpio, int &errcnt, std::string &errstr);
     bool getGPIODirection(int gpio, int &errcnt, std::string &errstr);
