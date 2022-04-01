@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.21.0
+/* MCP2210 class - Version 0.22.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -40,13 +40,14 @@ private:
 
 public:
     // Class definitions
-    static const uint16_t VID = 0x04d8;     // Default USB vendor ID
-    static const uint16_t PID = 0x00de;     // Default USB product ID
-    static const int SUCCESS = 0;           // Returned by open() if successful
-    static const int ERROR_INIT = 1;        // Returned by open() in case of a libusb initialization failure
-    static const int ERROR_NOT_FOUND = 2;   // Returned by open() if the device was not found
-    static const int ERROR_BUSY = 3;        // Returned by open() if the device is already in use
-    static const size_t COMMAND_SIZE = 64;  // HID command size
+    static const uint16_t VID = 0x04d8;        // Default USB vendor ID
+    static const uint16_t PID = 0x00de;        // Default USB product ID
+    static const int SUCCESS = 0;              // Returned by open() if successful
+    static const int ERROR_INIT = 1;           // Returned by open() in case of a libusb initialization failure
+    static const int ERROR_NOT_FOUND = 2;      // Returned by open() if the device was not found
+    static const int ERROR_BUSY = 3;           // Returned by open() if the device is already in use
+    static const size_t COMMAND_SIZE = 64;     // HID command size
+    static const size_t SPIDATA_MAXSIZE = 60;  // Maximum size of the data vector for a single SPI transfer (only applicable to basic SPI transfers)
 
     // Descriptor specific definitions
     static const size_t DESC_MAXLEN = 28;  // Maximum length for any descriptor
@@ -68,6 +69,7 @@ public:
     static const uint8_t GET_GPIO_DIRECTIONS = 0x33;  // Get GPIO pin directions
     static const uint8_t SET_SPI_SETTINGS = 0x40;     // Set SPI transfer settings
     static const uint8_t GET_SPI_SETTINGS = 0x41;     // Get SPI transfer settings
+    static const uint8_t TRANSFER_SPI_DATA = 0x42;    // Transfer SPI data
     static const uint8_t READ_EEPROM = 0x50;          // Read EEPROM
     static const uint8_t WRITE_EEPROM = 0x51;         // Write EEPROM
     static const uint8_t SET_NVRAM_SETTINGS = 0x60;   // Set NVRAM settings
@@ -90,6 +92,11 @@ public:
     static const uint8_t REJECTED = 0xfc;        // Access rejected
     static const uint8_t WRONG_PASSWORD = 0xfd;  // Wrong password (number of attempts is still within the limit)
     static const uint8_t OTHER_ERROR = 0xff;     // Other error (check errcnt and errstr for details)
+
+    // SPI transfer engine status, returned by spiTransfer()
+    static const uint8_t TRANSFER_FINISHED = 0x10;      // SPI transfer finished (no more data to send)
+    static const uint8_t TRANSFER_STARTED = 0x20;       // SPI transfer started (no data to receive)
+    static const uint8_t TRANSFER_NOT_FINISHED = 0x30;  // SPI transfer not finished (received data available)
 
     // The following values are applicable to ChipSettings/configureChipSettings()/getChipSettings()
     static const uint8_t PCGPIO = 0x00;   // Pin configured as GPIO
@@ -279,6 +286,7 @@ public:
     uint8_t setGPIODirection(int gpio, bool direction, int &errcnt, std::string &errstr);
     uint8_t setGPIODirections(uint8_t directions, int &errcnt, std::string &errstr);
     uint8_t setGPIOs(uint16_t values, int &errcnt, std::string &errstr);
+    std::vector<uint8_t> spiTransfer(const std::vector<uint8_t> &data, uint8_t &status, int &errcnt, std::string &errstr);
     uint8_t toggleGPIO(int gpio, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);

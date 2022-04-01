@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.21.0
+/* MCP2210 class - Version 0.22.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -618,10 +618,41 @@ uint8_t MCP2210::setGPIOs(uint16_t values, int &errcnt, std::string &errstr)
     return response[1];
 }
 
+// Performs a basic SPI transfer
+// Note that the variable "status" is used to return either the SPI transfer engine status or, in case of error, the HID command response
+std::vector<uint8_t> MCP2210::spiTransfer(const std::vector<uint8_t> &data, uint8_t &status, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> retdata;
+    size_t bytesToSend = data.size();
+    if (bytesToSend > SPIDATA_MAXSIZE) {
+        ++errcnt;
+        errstr += "In spiTransfer(): vector size cannot exceed 60 bytes.\n";  // Program logic error
+    } else {
+        std::vector<uint8_t> command(bytesToSend + 4);
+        command[0] = TRANSFER_SPI_DATA;                  // Header
+        command[1] = static_cast<uint8_t>(bytesToSend);  // Number of bytes to send
+        for (size_t i = 0; i < bytesToSend; ++i) {
+            command[i + 4] = data[i];
+        }
+        std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+        if (response[1] == COMPLETED) {  // If the HID transfer was completed
+            status = response[3];  // The returned status corresponds to the obtained SPI transfer engine status
+            size_t bytesReceived = response[2];
+            retdata.resize(bytesReceived);
+            for (size_t i = 0; i < bytesReceived; ++i) {
+                retdata[i] = response[i + 4];
+            }
+        } else {
+            status = response[1];  // The returned status corresponds to the obtained HID command response (it can be BUSY [0xf7] or IN_PROGRESS [0xf8])
+        }
+    }
+    return retdata;
+}
+
 // Toggles (inverts the value of) a given GPIO pin on the MCP2210
 uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
 {
-        uint8_t retval;
+    uint8_t retval;
     if (gpio < 0 || gpio > 7) {
         ++errcnt;
         errstr += "In toggleGPIO(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
