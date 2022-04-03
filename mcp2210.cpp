@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 0.22.0
+/* MCP2210 class - Version 1.0.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -556,7 +556,7 @@ uint8_t MCP2210::setGPIO(int gpio, bool value, int &errcnt, std::string &errstr)
         int preverrcnt = errcnt;
         uint16_t values = getGPIOs(errcnt, errstr);
         if (errcnt == preverrcnt) {
-            uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
+            uint16_t mask = static_cast<uint16_t>(0x0001 << gpio);
             if (value) {  // If the selected GPIO pin value is set to be high
                 values = static_cast<uint16_t>(mask | values);  // Set pin high
             } else {
@@ -643,7 +643,7 @@ std::vector<uint8_t> MCP2210::spiTransfer(const std::vector<uint8_t> &data, uint
                 retdata[i] = response[i + 4];
             }
         } else {
-            status = response[1];  // The returned status corresponds to the obtained HID command response (it can be BUSY [0xf7] or IN_PROGRESS [0xf8])
+            status = response[1];  // The returned status corresponds to the obtained HID command response (it can be "BUSY" [0xf7] or "IN_PROGRESS" [0xf8])
         }
     }
     return retdata;
@@ -661,7 +661,7 @@ uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
         int preverrcnt = errcnt;
         uint16_t values = getGPIOs(errcnt, errstr);
         if (errcnt == preverrcnt) {
-            uint16_t mask = static_cast<uint8_t>(0x0001 << gpio);
+            uint16_t mask = static_cast<uint16_t>(0x0001 << gpio);
             if ((mask & values) == 0x0000) {  // If the selected GPIO pin is low
                 values = static_cast<uint16_t>(mask | values);  // Toggle pin high
             } else {
