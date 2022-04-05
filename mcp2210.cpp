@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 1.0.0
+/* MCP2210 class - Version 1.0.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -43,7 +43,7 @@ std::u16string MCP2210::getDescGeneric(uint8_t subcomid, int &errcnt, std::strin
     size_t length = (response[4] > maxLength ? maxLength : response[4]) - 2;  // Descriptor internal length
     std::u16string descriptor;
     for (size_t i = 0; i < length; i += 2) {
-        descriptor += static_cast<uint16_t>(response[i + 7] << 8 | response[i + 6]);  // UTF-16LE conversion as per the USB 2.0 specification
+        descriptor += static_cast<char16_t>(response[i + 7] << 8 | response[i + 6]);  // UTF-16LE conversion as per the USB 2.0 specification
     }
     return descriptor;
 }
