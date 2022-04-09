@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 1.0.1
+/* MCP2210 class - Version 1.0.2
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -431,7 +431,8 @@ MCP2210::USBParameters MCP2210::getUSBParameters(int &errcnt, std::string &errst
 // The command vector can be shorter or longer than 64 bytes, but the resulting command will either be padded with zeros or truncated in order to fit
 std::vector<uint8_t> MCP2210::hidTransfer(const std::vector<uint8_t> &data, int &errcnt, std::string &errstr)
 {
-    size_t bytesToFill = data.size() > COMMAND_SIZE ? COMMAND_SIZE : data.size();
+    size_t vecSize = data.size();  // Size of "data" (optimization implemented in version 1.0.2)
+    size_t bytesToFill = vecSize > COMMAND_SIZE ? COMMAND_SIZE : vecSize;
     unsigned char commandBuffer[COMMAND_SIZE] = {0x00};  // It is important to initialize the array in this manner, so that unused indexes are filled with zeros!
     for (size_t i = 0; i < bytesToFill; ++i) {
         commandBuffer[i] = data[i];
@@ -695,16 +696,19 @@ uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<
         ++errcnt;
         errstr += "In writeEEPROMRange(): the first address cannot be greater than the last address.\n";  // Program logic error
         retval = OTHER_ERROR;
-    } else if (static_cast<int>(values.size()) != end - begin + 1) {
-        ++errcnt;
-        errstr += "In writeEEPROMRange(): vector size does not match range size.\n";  // Program logic error
-        retval = OTHER_ERROR;
     } else {
-        for (size_t i = 0; i < values.size(); ++i) {
-            int preverrcnt = errcnt;
-            retval = writeEEPROMByte(static_cast<uint8_t>(begin + i), values[i], errcnt, errstr);
-            if (errcnt != preverrcnt || retval != COMPLETED) {  // If an error occurs
-                break;  // Abort
+        size_t vecSize = values.size();  // Size of "values" (optimization implemented in version 1.0.2)
+        if (vecSize != end - begin + 1u) {
+            ++errcnt;
+            errstr += "In writeEEPROMRange(): vector size does not match range size.\n";  // Program logic error
+            retval = OTHER_ERROR;
+        } else {
+            for (size_t i = 0; i < vecSize; ++i) {
+                int preverrcnt = errcnt;
+                retval = writeEEPROMByte(static_cast<uint8_t>(begin + i), values[i], errcnt, errstr);
+                if (errcnt != preverrcnt || retval != COMPLETED) {  // If an error occurs
+                    break;  // Abort
+                }
             }
         }
     }
