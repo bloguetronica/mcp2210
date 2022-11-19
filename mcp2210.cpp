@@ -514,7 +514,7 @@ uint8_t MCP2210::readEEPROMByte(uint8_t address, int &errcnt, std::string &errst
 }
 
 // Reads the EEPROM within the specified range, returning a vector
-// In an error occurs, the size of the vector will be smaller than expected
+// If an error occurs, the size of the vector will be smaller than expected
 std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> values;
