@@ -270,6 +270,7 @@ public:
     void close();
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
+    uint8_t getAccessControlMode(int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
     ChipStatus getChipStatus(int &errcnt, std::string &errstr);
     uint16_t getEventCount(int &errcnt, std::string &errstr);

@@ -237,6 +237,17 @@ uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, 
     return response[1];
 }
 
+// Retrieves the access control mode from the MCP2210 NVRAM
+uint8_t MCP2210::getAccessControlMode(int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        GET_NVRAM_SETTINGS, NV_CHIP_SETTINGS  // Header
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[18];  // Access control mode corresponds to byte 18
+}
+
+
 // Returns applied chip settings
 MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
 {
