@@ -729,26 +729,49 @@ uint8_t MCP2210::writeManufacturerDesc(const std::u16string &manufacturer, int &
     return retval;
 }
 
-// Writes the given chip transfer settings to the MCP2210 OTP NVRAM
+// Writes the given chip transfer settings to the MCP2210 OTP NVRAM (this overloaded function is functionally equivalent to the implementation of writeNVChipSettings() that is found on previous versions)
 uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
-        SET_NVRAM_SETTINGS, NV_CHIP_SETTINGS, 0x00, 0x00,                                                 // Header
-        settings.gp0,                                                                                     // GP0 pin configuration
-        settings.gp1,                                                                                     // GP1 pin configuration
-        settings.gp2,                                                                                     // GP2 pin configuration
-        settings.gp3,                                                                                     // GP3 pin configuration
-        settings.gp4,                                                                                     // GP4 pin configuration
-        settings.gp5,                                                                                     // GP5 pin configuration
-        settings.gp6,                                                                                     // GP6 pin configuration
-        settings.gp7,                                                                                     // GP7 pin configuration
-        settings.gp8,                                                                                     // GP8 pin configuration
-        settings.gpout, 0x00,                                                                             // Default GPIO outputs (GPIO7 to GPIO0)
-        settings.gpdir, 0x01,                                                                             // Default GPIO directions (GPIO7 to GPIO0)
-        static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi)  // Other chip settings
-    };
-    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    return response[1];
+    return writeNVChipSettings(settings, ACNONE, "", errcnt, errstr);
+}
+
+// Writes the given chip transfer settings to the MCP2210 OTP NVRAM, while also setting the access control mode and password (expanded in version 1.1.0)
+// Note that it is possible to use an empty string for the password
+uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t accessControlMode, const std::string &password, int &errcnt, std::string &errstr)
+{
+    uint8_t retval;
+    if (accessControlMode != ACNONE && accessControlMode != ACPASSWORD && accessControlMode != ACLOCKED) {
+        ++errcnt;
+        errstr += "In writeNVChipSettings(): the specified access control mode is not supported.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else if (password.size() > PASS_MAXLEN) {
+        ++errcnt;
+        errstr += "In writeNVChipSettings(): password string cannot be longer than 8 characters.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else {
+        std::vector<uint8_t> command = {
+            SET_NVRAM_SETTINGS, NV_CHIP_SETTINGS, 0x00, 0x00,                                                  // Header
+            settings.gp0,                                                                                      // GP0 pin configuration
+            settings.gp1,                                                                                      // GP1 pin configuration
+            settings.gp2,                                                                                      // GP2 pin configuration
+            settings.gp3,                                                                                      // GP3 pin configuration
+            settings.gp4,                                                                                      // GP4 pin configuration
+            settings.gp5,                                                                                      // GP5 pin configuration
+            settings.gp6,                                                                                      // GP6 pin configuration
+            settings.gp7,                                                                                      // GP7 pin configuration
+            settings.gp8,                                                                                      // GP8 pin configuration
+            settings.gpout, 0x00,                                                                              // Default GPIO outputs (GPIO7 to GPIO0)
+            settings.gpdir, 0x01,                                                                              // Default GPIO directions (GPIO7 to GPIO0)
+            static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi),  // Other chip settings
+            accessControlMode                                                                                  // Access control mode
+        };
+        for (size_t i = 0; i < password.size(); ++i) {
+            command.push_back(static_cast<uint8_t>(password[i]));
+        }
+        std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+        retval = response[1];
+    }
+    return retval;
 }
 
 // Writes the given SPI transfer settings to the MCP2210 OTP NVRAM

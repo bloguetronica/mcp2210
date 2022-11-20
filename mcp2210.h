@@ -48,6 +48,7 @@ public:
     static const int ERROR_BUSY = 3;           // Returned by open() if the device is already in use
     static const size_t COMMAND_SIZE = 64;     // HID command size
     static const size_t SPIDATA_MAXSIZE = 60;  // Maximum size of the data vector for a single SPI transfer (only applicable to basic SPI transfers)
+    static const size_t PASS_MAXLEN = 8;       // Maximum length for the password
 
     // Descriptor specific definitions
     static const size_t DESC_MAXLEN = 28;  // Maximum length for any descriptor
@@ -97,6 +98,11 @@ public:
     static const uint8_t TRANSFER_FINISHED = 0x10;      // SPI transfer finished (no more data to send)
     static const uint8_t TRANSFER_STARTED = 0x20;       // SPI transfer started (no data to receive)
     static const uint8_t TRANSFER_NOT_FINISHED = 0x30;  // SPI transfer not finished (received data available)
+
+    // Access control modes, returned by getAccessControlMode()
+    static const uint8_t ACNONE = 0x00;      // Chip settings not protected (no access control)
+    static const uint8_t ACPASSWORD = 0x40;  // Chip settings protected by password access
+    static const uint8_t ACLOCKED = 0x80;    // Chip settings permanently locked
 
     // The following values are applicable to ChipSettings/configureChipSettings()/getChipSettings()/getNVChipSettings()/writeNVChipSettings()
     static const uint8_t PCGPIO = 0x00;   // Pin configured as GPIO
@@ -292,6 +298,7 @@ public:
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
     uint8_t writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr);
     uint8_t writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
+    uint8_t writeNVChipSettings(const ChipSettings &settings, uint8_t accessControlMode, const std::string &password, int &errcnt, std::string &errstr);
     uint8_t writeNVSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     uint8_t writeProductDesc(const std::u16string &product, int &errcnt, std::string &errstr);
     uint8_t writeUSBParameters(const USBParameters &parameters, int &errcnt, std::string &errstr);
