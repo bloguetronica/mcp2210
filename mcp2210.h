@@ -48,7 +48,7 @@ public:
     static const int ERROR_BUSY = 3;           // Returned by open() if the device is already in use
     static const size_t COMMAND_SIZE = 64;     // HID command size
     static const size_t SPIDATA_MAXSIZE = 60;  // Maximum size of the data vector for a single SPI transfer (only applicable to basic SPI transfers)
-    static const size_t PASS_MAXLEN = 8;       // Maximum length for the password
+    static const size_t PASSWORD_MAXLEN = 8;   // Maximum length for the password
 
     // Descriptor specific definitions
     static const size_t DESC_MAXLEN = 28;  // Maximum length for any descriptor

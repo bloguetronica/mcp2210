@@ -744,7 +744,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         ++errcnt;
         errstr += "In writeNVChipSettings(): the specified access control mode is not supported.\n";  // Program logic error
         retval = OTHER_ERROR;
-    } else if (password.size() > PASS_MAXLEN) {
+    } else if (password.size() > PASSWORD_MAXLEN) {
         ++errcnt;
         errstr += "In writeNVChipSettings(): password string cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
