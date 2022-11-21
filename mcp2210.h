@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 1.0.2
+/* MCP2210 class - Version 1.1.0
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -48,6 +48,7 @@ public:
     static const int ERROR_BUSY = 3;           // Returned by open() if the device is already in use
     static const size_t COMMAND_SIZE = 64;     // HID command size
     static const size_t SPIDATA_MAXSIZE = 60;  // Maximum size of the data vector for a single SPI transfer (only applicable to basic SPI transfers)
+    static const size_t PASSWORD_MAXLEN = 8;   // Maximum length for the password
 
     // Descriptor specific definitions
     static const size_t DESC_MAXLEN = 28;  // Maximum length for any descriptor
@@ -74,6 +75,7 @@ public:
     static const uint8_t WRITE_EEPROM = 0x51;         // Write EEPROM
     static const uint8_t SET_NVRAM_SETTINGS = 0x60;   // Set NVRAM settings
     static const uint8_t GET_NVRAM_SETTINGS = 0x61;   // Get NVRAM settings
+    static const uint8_t SEND_PASSWORD = 0x70;        // Send password
 
     // NVRAM settings sub-command IDs
     static const uint8_t NV_SPI_SETTINGS = 0x10;    // Power-up (non-volatile) SPI transfer settings
@@ -98,7 +100,12 @@ public:
     static const uint8_t TRANSFER_STARTED = 0x20;       // SPI transfer started (no data to receive)
     static const uint8_t TRANSFER_NOT_FINISHED = 0x30;  // SPI transfer not finished (received data available)
 
-    // The following values are applicable to ChipSettings/configureChipSettings()/getChipSettings()
+    // Access control modes, returned by getAccessControlMode()
+    static const uint8_t ACNONE = 0x00;      // Chip settings not protected (no access control)
+    static const uint8_t ACPASSWORD = 0x40;  // Chip settings protected by password access
+    static const uint8_t ACLOCKED = 0x80;    // Chip settings permanently locked
+
+    // The following values are applicable to ChipSettings/configureChipSettings()/getChipSettings()/getNVChipSettings()/writeNVChipSettings()
     static const uint8_t PCGPIO = 0x00;   // Pin configured as GPIO
     static const uint8_t PCCS = 0x01;     // Pin configured as chip select
     static const uint8_t PCFUNC = 0x02;   // Pin configured as a dedicated function pin
@@ -117,60 +124,60 @@ public:
     static const bool PWNO = false;     // Password not guessed
     static const bool PWOK = true;      // Password guessed
 
-    // The following values are applicable to SPISettings/configureSPISettings()/getSPISettings()
-    static const uint32_t BRT1K464 = 1464;    // Value corresponding to a bit rate of 1.464Kbps
-    static const uint32_t BRT1K5 = 1500;      // Value corresponding to a bit rate of 1.5Kbps
-    static const uint32_t BRT1K875 = 1875;    // Value corresponding to a bit rate of 1.875Kbps
-    static const uint32_t BRT2K5 = 2500;      // Value corresponding to a bit rate of 2.5Kbps
-    static const uint32_t BRT3K = 3000;       // Value corresponding to a bit rate of 3Kbps
-    static const uint32_t BRT3K125 = 3125;    // Value corresponding to a bit rate of 3.125Kbps
-    static const uint32_t BRT3K75 = 3750;     // Value corresponding to a bit rate of 3.75Kbps
-    static const uint32_t BRT5K = 5000;       // Value corresponding to a bit rate of 5Kbps
-    static const uint32_t BRT6K = 6000;       // Value corresponding to a bit rate of 6Kbps
-    static const uint32_t BRT6K25 = 6250;     // Value corresponding to a bit rate of 6.25Kbps
-    static const uint32_t BRT7K5 = 7500;      // Value corresponding to a bit rate of 7.5Kbps
-    static const uint32_t BRT9K375 = 9375;    // Value corresponding to a bit rate of 9.375Kbps
-    static const uint32_t BRT10K = 10000;     // Value corresponding to a bit rate of 10Kbps
-    static const uint32_t BRT12K = 12000;     // Value corresponding to a bit rate of 12Kbps
-    static const uint32_t BRT12K5 = 12500;    // Value corresponding to a bit rate of 12.5Kbps
-    static const uint32_t BRT15K = 15000;     // Value corresponding to a bit rate of 15Kbps
-    static const uint32_t BRT15K625 = 15625;  // Value corresponding to a bit rate of 15.625Kbps
-    static const uint32_t BRT18K75 = 18750;   // Value corresponding to a bit rate of 18.750Kbps
-    static const uint32_t BRT20K = 20000;     // Value corresponding to a bit rate of 20Kbps
-    static const uint32_t BRT24K = 24000;     // Value corresponding to a bit rate of 24Kbps
-    static const uint32_t BRT25K = 25000;     // Value corresponding to a bit rate of 25Kbps
-    static const uint32_t BRT30K = 30000;     // Value corresponding to a bit rate of 30Kbps
-    static const uint32_t BRT31K25 = 31250;   // Value corresponding to a bit rate of 31.25Kbps
-    static const uint32_t BRT37K5 = 37500;    // Value corresponding to a bit rate of 37.5Kbps
-    static const uint32_t BRT40K = 40000;     // Value corresponding to a bit rate of 40Kbps
-    static const uint32_t BRT46K875 = 46875;  // Value corresponding to a bit rate of 46.875Kbps
-    static const uint32_t BRT48K = 48000;     // Value corresponding to a bit rate of 48Kbps
-    static const uint32_t BRT50K = 50000;     // Value corresponding to a bit rate of 50Kbps
-    static const uint32_t BRT60K = 60000;     // Value corresponding to a bit rate of 60Kbps
-    static const uint32_t BRT62K5 = 62500;    // Value corresponding to a bit rate of 62.5Kbps
-    static const uint32_t BRT75K = 75000;     // Value corresponding to a bit rate of 75Kbps
-    static const uint32_t BRT80K = 80000;     // Value corresponding to a bit rate of 80Kbps
-    static const uint32_t BRT93K75 = 93750;   // Value corresponding to a bit rate of 93.75Kbps
-    static const uint32_t BRT100K = 100000;   // Value corresponding to a bit rate of 100Kbps
-    static const uint32_t BRT120K = 120000;   // Value corresponding to a bit rate of 120Kbps
-    static const uint32_t BRT125K = 125000;   // Value corresponding to a bit rate of 125Kbps
-    static const uint32_t BRT150K = 150000;   // Value corresponding to a bit rate of 150Kbps
-    static const uint32_t BRT187K5 = 187500;  // Value corresponding to a bit rate of 187.5Kbps
-    static const uint32_t BRT200K = 200000;   // Value corresponding to a bit rate of 200Kbps
-    static const uint32_t BRT240K = 240000;   // Value corresponding to a bit rate of 240Kbps
-    static const uint32_t BRT250K = 250000;   // Value corresponding to a bit rate of 250Kbps
-    static const uint32_t BRT300K = 300000;   // Value corresponding to a bit rate of 300Kbps
-    static const uint32_t BRT375K = 375000;   // Value corresponding to a bit rate of 375Kbps
-    static const uint32_t BRT400K = 400000;   // Value corresponding to a bit rate of 400Kbps
-    static const uint32_t BRT500K = 500000;   // Value corresponding to a bit rate of 500Kbps
-    static const uint32_t BRT600K = 600000;   // Value corresponding to a bit rate of 600Kbps
-    static const uint32_t BRT750K = 750000;   // Value corresponding to a bit rate of 750Kbps
-    static const uint32_t BRT1M = 1000000;    // Value corresponding to a bit rate of 1Mbps
-    static const uint32_t BRT1M2 = 1200000;   // Value corresponding to a bit rate of 1.2Mbps
-    static const uint32_t BRT1M5 = 1500000;   // Value corresponding to a bit rate of 1.5Mbps
-    static const uint32_t BRT2M = 2000000;    // Value corresponding to a bit rate of 2Mbps
-    static const uint32_t BRT3M = 3000000;    // Value corresponding to a bit rate of 3Mbps
-    static const uint32_t BRT12M = 12000000;  // Value corresponding to a bit rate of 12Mbps
+    // The following values are applicable to SPISettings/configureSPISettings()/getSPISettings()/getNVSPISettings()/writeNVSPISettings()
+    static const uint32_t BRT1K464 = 1464;    // Value corresponding to a bit rate of 1.464 Kib/s
+    static const uint32_t BRT1K5 = 1500;      // Value corresponding to a bit rate of 1.5 Kib/s
+    static const uint32_t BRT1K875 = 1875;    // Value corresponding to a bit rate of 1.875 Kib/s
+    static const uint32_t BRT2K5 = 2500;      // Value corresponding to a bit rate of 2.5 Kib/s
+    static const uint32_t BRT3K = 3000;       // Value corresponding to a bit rate of 3 Kib/s
+    static const uint32_t BRT3K125 = 3125;    // Value corresponding to a bit rate of 3.125 Kib/s
+    static const uint32_t BRT3K75 = 3750;     // Value corresponding to a bit rate of 3.75 Kib/s
+    static const uint32_t BRT5K = 5000;       // Value corresponding to a bit rate of 5 Kib/s
+    static const uint32_t BRT6K = 6000;       // Value corresponding to a bit rate of 6 Kib/s
+    static const uint32_t BRT6K25 = 6250;     // Value corresponding to a bit rate of 6.25 Kib/s
+    static const uint32_t BRT7K5 = 7500;      // Value corresponding to a bit rate of 7.5 Kib/s
+    static const uint32_t BRT9K375 = 9375;    // Value corresponding to a bit rate of 9.375 Kib/s
+    static const uint32_t BRT10K = 10000;     // Value corresponding to a bit rate of 10 Kib/s
+    static const uint32_t BRT12K = 12000;     // Value corresponding to a bit rate of 12 Kib/s
+    static const uint32_t BRT12K5 = 12500;    // Value corresponding to a bit rate of 12.5 Kib/s
+    static const uint32_t BRT15K = 15000;     // Value corresponding to a bit rate of 15 Kib/s
+    static const uint32_t BRT15K625 = 15625;  // Value corresponding to a bit rate of 15.625 Kib/s
+    static const uint32_t BRT18K75 = 18750;   // Value corresponding to a bit rate of 18.750 Kib/s
+    static const uint32_t BRT20K = 20000;     // Value corresponding to a bit rate of 20 Kib/s
+    static const uint32_t BRT24K = 24000;     // Value corresponding to a bit rate of 24 Kib/s
+    static const uint32_t BRT25K = 25000;     // Value corresponding to a bit rate of 25 Kib/s
+    static const uint32_t BRT30K = 30000;     // Value corresponding to a bit rate of 30 Kib/s
+    static const uint32_t BRT31K25 = 31250;   // Value corresponding to a bit rate of 31.25 Kib/s
+    static const uint32_t BRT37K5 = 37500;    // Value corresponding to a bit rate of 37.5 Kib/s
+    static const uint32_t BRT40K = 40000;     // Value corresponding to a bit rate of 40 Kib/s
+    static const uint32_t BRT46K875 = 46875;  // Value corresponding to a bit rate of 46.875 Kib/s
+    static const uint32_t BRT48K = 48000;     // Value corresponding to a bit rate of 48 Kib/s
+    static const uint32_t BRT50K = 50000;     // Value corresponding to a bit rate of 50 Kib/s
+    static const uint32_t BRT60K = 60000;     // Value corresponding to a bit rate of 60 Kib/s
+    static const uint32_t BRT62K5 = 62500;    // Value corresponding to a bit rate of 62.5 Kib/s
+    static const uint32_t BRT75K = 75000;     // Value corresponding to a bit rate of 75 Kib/s
+    static const uint32_t BRT80K = 80000;     // Value corresponding to a bit rate of 80 Kib/s
+    static const uint32_t BRT93K75 = 93750;   // Value corresponding to a bit rate of 93.75 Kib/s
+    static const uint32_t BRT100K = 100000;   // Value corresponding to a bit rate of 100 Kib/s
+    static const uint32_t BRT120K = 120000;   // Value corresponding to a bit rate of 120 Kib/s
+    static const uint32_t BRT125K = 125000;   // Value corresponding to a bit rate of 125 Kib/s
+    static const uint32_t BRT150K = 150000;   // Value corresponding to a bit rate of 150 Kib/s
+    static const uint32_t BRT187K5 = 187500;  // Value corresponding to a bit rate of 187.5 Kib/s
+    static const uint32_t BRT200K = 200000;   // Value corresponding to a bit rate of 200 Kib/s
+    static const uint32_t BRT240K = 240000;   // Value corresponding to a bit rate of 240 Kib/s
+    static const uint32_t BRT250K = 250000;   // Value corresponding to a bit rate of 250 Kib/s
+    static const uint32_t BRT300K = 300000;   // Value corresponding to a bit rate of 300 Kib/s
+    static const uint32_t BRT375K = 375000;   // Value corresponding to a bit rate of 375 Kib/s
+    static const uint32_t BRT400K = 400000;   // Value corresponding to a bit rate of 400 Kib/s
+    static const uint32_t BRT500K = 500000;   // Value corresponding to a bit rate of 500 Kib/s
+    static const uint32_t BRT600K = 600000;   // Value corresponding to a bit rate of 600 Kib/s
+    static const uint32_t BRT750K = 750000;   // Value corresponding to a bit rate of 750 Kib/s
+    static const uint32_t BRT1M = 1000000;    // Value corresponding to a bit rate of 1 Mib/s
+    static const uint32_t BRT1M2 = 1200000;   // Value corresponding to a bit rate of 1.2 Mib/s
+    static const uint32_t BRT1M5 = 1500000;   // Value corresponding to a bit rate of 1.5 Mib/s
+    static const uint32_t BRT2M = 2000000;    // Value corresponding to a bit rate of 2 Mib/s
+    static const uint32_t BRT3M = 3000000;    // Value corresponding to a bit rate of 3 Mib/s
+    static const uint32_t BRT12M = 12000000;  // Value corresponding to a bit rate of 12 Mib/s
     static const uint8_t SPIMODE0 = 0x00;     // Value corresponding to SPI mode 0
     static const uint8_t SPIMODE1 = 0x01;     // Value corresponding to SPI mode 1
     static const uint8_t SPIMODE2 = 0x02;     // Value corresponding to SPI mode 2
@@ -246,7 +253,7 @@ public:
     struct USBParameters {
         uint16_t vid;    // Vendor ID
         uint16_t pid;    // Product ID
-        uint8_t maxpow;  // Maximum consumption current (raw value un 2mA units)
+        uint8_t maxpow;  // Maximum consumption current (raw value in 2 mA units)
         bool powmode;    // Power mode (false for bus-powered, true for self-powered)
         bool rmwakeup;   // Remote wakeup
 
@@ -264,6 +271,7 @@ public:
     void close();
     uint8_t configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
+    uint8_t getAccessControlMode(int &errcnt, std::string &errstr);
     ChipSettings getChipSettings(int &errcnt, std::string &errstr);
     ChipStatus getChipStatus(int &errcnt, std::string &errstr);
     uint16_t getEventCount(int &errcnt, std::string &errstr);
@@ -288,9 +296,11 @@ public:
     uint8_t setGPIOs(uint16_t values, int &errcnt, std::string &errstr);
     std::vector<uint8_t> spiTransfer(const std::vector<uint8_t> &data, uint8_t &status, int &errcnt, std::string &errstr);
     uint8_t toggleGPIO(int gpio, int &errcnt, std::string &errstr);
+    uint8_t usePassword(const std::string &password, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
     uint8_t writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr);
+    uint8_t writeNVChipSettings(const ChipSettings &settings, uint8_t accessControlMode, const std::string &password, int &errcnt, std::string &errstr);
     uint8_t writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t writeNVSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     uint8_t writeProductDesc(const std::u16string &product, int &errcnt, std::string &errstr);
