@@ -298,8 +298,8 @@ public:
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
     uint8_t writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr);
-    uint8_t writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t writeNVChipSettings(const ChipSettings &settings, uint8_t accessControlMode, const std::string &password, int &errcnt, std::string &errstr);
+    uint8_t writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr);
     uint8_t writeNVSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr);
     uint8_t writeProductDesc(const std::u16string &product, int &errcnt, std::string &errstr);
     uint8_t writeUSBParameters(const USBParameters &parameters, int &errcnt, std::string &errstr);

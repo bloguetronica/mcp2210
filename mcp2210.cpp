@@ -740,13 +740,6 @@ uint8_t MCP2210::writeManufacturerDesc(const std::u16string &manufacturer, int &
     return retval;
 }
 
-// Writes the given chip transfer settings to the MCP2210 OTP NVRAM (this overloaded function is functionally equivalent to the implementation of writeNVChipSettings() that is found in versions 1.0.0 to 1.0.2)
-// The use of this variant of writeNVChipSettings() sets the access control mode to "ACNONE" [0x00] and clears the password
-uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
-{
-    return writeNVChipSettings(settings, ACNONE, "", errcnt, errstr);
-}
-
 // Writes the given chip transfer settings to the MCP2210 OTP NVRAM, while also setting the access control mode and password (expanded in version 1.1.0)
 // Note that it is possible to use an empty string for the password
 uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t accessControlMode, const std::string &password, int &errcnt, std::string &errstr)
@@ -784,6 +777,13 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         retval = response[1];
     }
     return retval;
+}
+
+// Writes the given chip transfer settings to the MCP2210 OTP NVRAM (this overloaded function is functionally equivalent to the implementation of writeNVChipSettings() that is found in versions 1.0.0 to 1.0.2)
+// The use of this variant of writeNVChipSettings() sets the access control mode to "ACNONE" [0x00] and clears the password
+uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
+{
+    return writeNVChipSettings(settings, ACNONE, "", errcnt, errstr);
 }
 
 // Writes the given SPI transfer settings to the MCP2210 OTP NVRAM
