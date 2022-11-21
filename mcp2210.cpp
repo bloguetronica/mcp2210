@@ -690,15 +690,24 @@ uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
 // This function should be called before modifying a setting in the NVRAM, if a password is set
 uint8_t MCP2210::usePassword(const std::string &password, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
-        SEND_PASSWORD, 0x00, 0x00, 0x00  // Header
-    };
-    char *passwordcstr = new char[password.size() + 1];
-    std::strcpy(passwordcstr, password.c_str());
-    uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
-    command.insert(command.end(), passworducstr, passworducstr + std::strlen(passwordcstr));
-    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    return response[1];
+    uint8_t retval;
+    if (password.size() > PASSWORD_MAXLEN) {
+        ++errcnt;
+        errstr += "In usePassword(): password cannot be longer than 8 characters.\n";  // Program logic error
+        retval = OTHER_ERROR;
+    } else {
+        std::vector<uint8_t> command = {
+            SEND_PASSWORD, 0x00, 0x00, 0x00  // Header
+        };
+        char *passwordcstr = new char[password.size() + 1];
+        std::strcpy(passwordcstr, password.c_str());
+        uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
+        command.insert(command.end(), passworducstr, passworducstr + std::strlen(passwordcstr));
+        delete[] passwordcstr;
+        std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+        retval = response[1];
+    }
+    return retval;
 }
 
 // Writes a byte to a given EEPROM address
@@ -765,7 +774,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         retval = OTHER_ERROR;
     } else if (password.size() > PASSWORD_MAXLEN) {
         ++errcnt;
-        errstr += "In writeNVChipSettings(): password string cannot be longer than 8 characters.\n";  // Program logic error
+        errstr += "In writeNVChipSettings(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
         std::vector<uint8_t> command = {
@@ -788,6 +797,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         std::strcpy(passwordcstr, password.c_str());
         uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
         command.insert(command.end(), passworducstr, passworducstr + std::strlen(passwordcstr));
+        delete[] passwordcstr;
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         retval = response[1];
     }
