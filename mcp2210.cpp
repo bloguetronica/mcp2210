@@ -686,6 +686,21 @@ uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
     return retval;
 }
 
+// Sends password over to the MCP2210
+// This function should be called before modifying a configuration in the NVRAM, if a password is set
+uint8_t MCP2210::usePassword(const std::string &password, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command = {
+        SEND_PASSWORD, 0x00, 0x00, 0x00  // Header
+    };
+    char *passwordcstr = new char[password.size() + 1];
+    std::strcpy(passwordcstr, password.c_str());
+    uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
+    command.insert(command.end(), passworducstr, passworducstr + std::strlen(passwordcstr));
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[1];
+}
+
 // Writes a byte to a given EEPROM address
 uint8_t MCP2210::writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr)
 {
@@ -740,7 +755,7 @@ uint8_t MCP2210::writeManufacturerDesc(const std::u16string &manufacturer, int &
 }
 
 // Writes the given chip transfer settings to the MCP2210 OTP NVRAM, while also setting the access control mode and password (expanded in version 1.1.0)
-// Note that it is possible to use an empty string for the password
+// Note that using an empty string for the password will have the effect of leaving it unchanged
 uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t accessControlMode, const std::string &password, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
@@ -780,7 +795,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
 }
 
 // Writes the given chip transfer settings to the MCP2210 OTP NVRAM (this overloaded function is functionally equivalent to the implementation of writeNVChipSettings() that is found in versions 1.0.0 to 1.0.2)
-// The use of this variant of writeNVChipSettings() sets the access control mode to "ACNONE" [0x00] and clears the password
+// The use of this variant of writeNVChipSettings() sets the access control mode to "ACNONE" [0x00], but the password is kept unchanged
 uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
 {
     return writeNVChipSettings(settings, ACNONE, "", errcnt, errstr);

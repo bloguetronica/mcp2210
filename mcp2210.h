@@ -75,6 +75,7 @@ public:
     static const uint8_t WRITE_EEPROM = 0x51;         // Write EEPROM
     static const uint8_t SET_NVRAM_SETTINGS = 0x60;   // Set NVRAM settings
     static const uint8_t GET_NVRAM_SETTINGS = 0x61;   // Get NVRAM settings
+    static const uint8_t SEND_PASSWORD = 0x70;        // Send password
 
     // NVRAM settings sub-command IDs
     static const uint8_t NV_SPI_SETTINGS = 0x10;    // Power-up (non-volatile) SPI transfer settings
@@ -295,6 +296,7 @@ public:
     uint8_t setGPIOs(uint16_t values, int &errcnt, std::string &errstr);
     std::vector<uint8_t> spiTransfer(const std::vector<uint8_t> &data, uint8_t &status, int &errcnt, std::string &errstr);
     uint8_t toggleGPIO(int gpio, int &errcnt, std::string &errstr);
+    uint8_t usePassword(const std::string &password, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr);
     uint8_t writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<uint8_t> &values, int &errcnt, std::string &errstr);
     uint8_t writeManufacturerDesc(const std::u16string &manufacturer, int &errcnt, std::string &errstr);
