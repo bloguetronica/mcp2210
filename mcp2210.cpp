@@ -771,7 +771,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         };
         char *passwordcstr = new char[password.size() + 1];
         std::strcpy(passwordcstr, password.c_str());
-        uint8_t *passworducstr = reinterpret_cast<unsigned char *>(passwordcstr);
+        uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
         command.insert(command.end(), passworducstr, passworducstr + password.size());
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         retval = response[1];
