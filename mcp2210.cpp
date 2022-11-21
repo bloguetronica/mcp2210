@@ -687,7 +687,7 @@ uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
 }
 
 // Sends password over to the MCP2210
-// This function should be called before modifying a configuration in the NVRAM, if a password is set
+// This function should be called before modifying a setting in the NVRAM, if a password is set
 uint8_t MCP2210::usePassword(const std::string &password, int &errcnt, std::string &errstr)
 {
     std::vector<uint8_t> command = {
