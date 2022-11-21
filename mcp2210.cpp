@@ -769,9 +769,10 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
             static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi),  // Other chip settings
             accessControlMode                                                                                  // Access control mode
         };
-        for (size_t i = 0; i < password.size(); ++i) {
-            command.push_back(static_cast<uint8_t>(password[i]));
-        }
+        char *passwordcstr = new char[password.size() + 1];
+        std::strcpy(passwordcstr, password.c_str());
+        uint8_t *passworducstr = reinterpret_cast<unsigned char *>(passwordcstr);
+        command.insert(command.end(), passworducstr, passworducstr + password.size());
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         retval = response[1];
     }
