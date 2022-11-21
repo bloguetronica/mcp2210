@@ -247,7 +247,6 @@ uint8_t MCP2210::getAccessControlMode(int &errcnt, std::string &errstr)
     return response[18];  // Access control mode corresponds to byte 18
 }
 
-
 // Returns applied chip settings
 MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
 {
