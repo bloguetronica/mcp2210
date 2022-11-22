@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 1.1.0
+/* MCP2210 class - Version 1.1.1
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -302,7 +302,7 @@ uint16_t MCP2210::getEventCount(int &errcnt, std::string &errstr)
 bool MCP2210::getGPIO(int gpio, int &errcnt, std::string &errstr)
 {
     bool value;
-    if (gpio < 0 || gpio > 8) {
+    if (gpio < GPIO0 || gpio > GPIO8) {
         ++errcnt;
         errstr += "In getGPIO(): GPIO pin number must be between 0 and 8.\n";  // Program logic error
         value = false;
@@ -316,7 +316,7 @@ bool MCP2210::getGPIO(int gpio, int &errcnt, std::string &errstr)
 bool MCP2210::getGPIODirection(int gpio, int &errcnt, std::string &errstr)
 {
     bool direction;
-    if (gpio < 0 || gpio > 7) {
+    if (gpio < GPIO0 || gpio > GPIO7) {
         ++errcnt;
         errstr += "In getGPIODirection(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         direction = false;
@@ -559,7 +559,7 @@ uint8_t MCP2210::resetEventCounter(int &errcnt, std::string &errstr)
 uint8_t MCP2210::setGPIO(int gpio, bool value, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
-    if (gpio < 0 || gpio > 7) {
+    if (gpio < GPIO0 || gpio > GPIO7) {
         ++errcnt;
         errstr += "In setGPIO(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
@@ -585,7 +585,7 @@ uint8_t MCP2210::setGPIO(int gpio, bool value, int &errcnt, std::string &errstr)
 uint8_t MCP2210::setGPIODirection(int gpio, bool direction, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
-    if (gpio < 0 || gpio > 7) {
+    if (gpio < GPIO0 || gpio > GPIO7) {
         ++errcnt;
         errstr += "In setGPIODirection(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
@@ -664,7 +664,7 @@ std::vector<uint8_t> MCP2210::spiTransfer(const std::vector<uint8_t> &data, uint
 uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
-    if (gpio < 0 || gpio > 7) {
+    if (gpio < GPIO0 || gpio > GPIO7) {
         ++errcnt;
         errstr += "In toggleGPIO(): GPIO pin number must be between 0 and 7.\n";  // Program logic error
         retval = OTHER_ERROR;
@@ -737,6 +737,7 @@ uint8_t MCP2210::writeEEPROMRange(uint8_t begin, uint8_t end, const std::vector<
             errstr += "In writeEEPROMRange(): vector size does not match range size.\n";  // Program logic error
             retval = OTHER_ERROR;
         } else {
+            retval = COMPLETED;  // Fix applied in version 1.1.1
             for (size_t i = 0; i < vecSize; ++i) {
                 int preverrcnt = errcnt;
                 retval = writeEEPROMByte(static_cast<uint8_t>(begin + i), values[i], errcnt, errstr);
