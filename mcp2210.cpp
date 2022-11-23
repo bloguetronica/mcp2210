@@ -778,27 +778,26 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         errstr += "In writeNVChipSettings(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
-        std::vector<uint8_t> command{
-            SET_NVRAM_SETTINGS, NV_CHIP_SETTINGS, 0x00, 0x00,                                                  // Header
-            settings.gp0,                                                                                      // GP0 pin configuration
-            settings.gp1,                                                                                      // GP1 pin configuration
-            settings.gp2,                                                                                      // GP2 pin configuration
-            settings.gp3,                                                                                      // GP3 pin configuration
-            settings.gp4,                                                                                      // GP4 pin configuration
-            settings.gp5,                                                                                      // GP5 pin configuration
-            settings.gp6,                                                                                      // GP6 pin configuration
-            settings.gp7,                                                                                      // GP7 pin configuration
-            settings.gp8,                                                                                      // GP8 pin configuration
-            settings.gpout, 0x00,                                                                              // Default GPIO outputs (GPIO7 to GPIO0)
-            settings.gpdir, 0x01,                                                                              // Default GPIO directions (GPIO7 to GPIO0)
-            static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi),  // Other chip settings
-            accessControlMode                                                                                  // Access control mode
-        };
-        char *passwordcstr = new char[password.size() + 1];
-        std::strcpy(passwordcstr, password.c_str());
-        uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
-        command.insert(command.end(), passworducstr, passworducstr + std::strlen(passwordcstr));
-        delete[] passwordcstr;
+        std::vector<uint8_t> command(password.size() + 19);  // Since version 1.1.2, the vector is constructed with the adequate size
+        command[0] = SET_NVRAM_SETTINGS;                                                                                 // Header
+        command[1] = NV_CHIP_SETTINGS;
+        command[4] = settings.gp0;                                                                                       // GP0 pin configuration
+        command[5] = settings.gp1;                                                                                       // GP1 pin configuration
+        command[6] = settings.gp2;                                                                                       // GP2 pin configuration
+        command[7] = settings.gp3;                                                                                       // GP3 pin configuration
+        command[8] = settings.gp4;                                                                                       // GP4 pin configuration
+        command[9] = settings.gp5;                                                                                       // GP5 pin configuration
+        command[10] = settings.gp6;                                                                                      // GP6 pin configuration
+        command[11] = settings.gp7;                                                                                      // GP7 pin configuration
+        command[12] = settings.gp8,                                                                                      // GP8 pin configuration
+        command[13] = settings.gpout;                                                                                    // Default GPIO outputs (GPIO7 to GPIO0)
+        command[15] = settings.gpdir;                                                                                    // Default GPIO directions (GPIO7 to GPIO0)
+        command[16] = 0x01;
+        command[17] = static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi);  // Other chip settings
+        command[18] = accessControlMode;                                                                                 // Access control mode
+        for (size_t i = 0; i < password.size(); ++i) {  // This for loop was implemented in version 1.1.2, in order to simplify the algorithm
+            command[i + 19] = static_cast<uint8_t>(password[i]);
+        }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         retval = response[1];
     }
