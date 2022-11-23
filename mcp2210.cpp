@@ -1,4 +1,4 @@
-/* MCP2210 class - Version 1.1.1
+/* MCP2210 class - Version 1.1.2
    Copyright (c) 2022 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
@@ -35,7 +35,7 @@ const unsigned int TR_TIMEOUT = 500;  // Transfer timeout in milliseconds
 // Private generic function that is used to get any descriptor
 std::u16string MCP2210::getDescGeneric(uint8_t subcomid, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_NVRAM_SETTINGS, subcomid  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -175,7 +175,7 @@ bool MCP2210::isOpen() const
 // Cancels the ongoing SPI transfer
 uint8_t MCP2210::cancelSPITransfer(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         CANCEL_SPI_TRANSFER  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -199,7 +199,7 @@ void MCP2210::close()
 // Configures volatile chip settings
 uint8_t MCP2210::configureChipSettings(const ChipSettings &settings, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         SET_CHIP_SETTINGS, 0x00, 0x00, 0x00,                                                              // Header
         settings.gp0,                                                                                     // GP0 pin configuration
         settings.gp1,                                                                                     // GP1 pin configuration
@@ -221,7 +221,7 @@ uint8_t MCP2210::configureChipSettings(const ChipSettings &settings, int &errcnt
 // Configures volatile SPI transfer settings
 uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         SET_SPI_SETTINGS, 0x00, 0x00, 0x00,                                                          // Header
         static_cast<uint8_t>(settings.bitrate), static_cast<uint8_t>(settings.bitrate >> 8),         // Bit rate
         static_cast<uint8_t>(settings.bitrate >> 16), static_cast<uint8_t>(settings.bitrate >> 24),
@@ -240,7 +240,7 @@ uint8_t MCP2210::configureSPISettings(const SPISettings &settings, int &errcnt, 
 // Retrieves the access control mode from the MCP2210 NVRAM
 uint8_t MCP2210::getAccessControlMode(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_NVRAM_SETTINGS, NV_CHIP_SETTINGS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -250,7 +250,7 @@ uint8_t MCP2210::getAccessControlMode(int &errcnt, std::string &errstr)
 // Returns applied chip settings
 MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_CHIP_SETTINGS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -275,7 +275,7 @@ MCP2210::ChipSettings MCP2210::getChipSettings(int &errcnt, std::string &errstr)
 // Returns the current status
 MCP2210::ChipStatus MCP2210::getChipStatus(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_CHIP_STATUS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -290,7 +290,7 @@ MCP2210::ChipStatus MCP2210::getChipStatus(int &errcnt, std::string &errstr)
 // Gets the number of events from the interrupt pin
 uint16_t MCP2210::getEventCount(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_EVENT_COUNT,  // Header
         0x01              // Do not reset the event counter
     };
@@ -329,7 +329,7 @@ bool MCP2210::getGPIODirection(int gpio, int &errcnt, std::string &errstr)
 // Returns the directions of all GPIO pins on the MCP2210
 uint8_t MCP2210::getGPIODirections(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_GPIO_DIRECTIONS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -339,7 +339,7 @@ uint8_t MCP2210::getGPIODirections(int &errcnt, std::string &errstr)
 // Returns the values of all GPIO pins on the MCP2210
 uint16_t MCP2210::getGPIOs(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_GPIO_VALUES  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -355,7 +355,7 @@ std::u16string MCP2210::getManufacturerDesc(int &errcnt, std::string &errstr)
 // Retrieves the power-up (non-volatile) chip settings from the MCP2210 NVRAM
 MCP2210::ChipSettings MCP2210::getNVChipSettings(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_NVRAM_SETTINGS, NV_CHIP_SETTINGS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -380,7 +380,7 @@ MCP2210::ChipSettings MCP2210::getNVChipSettings(int &errcnt, std::string &errst
 // Retrieves the power-up (non-volatile) SPI transfer settings from the MCP2210 NVRAM
 MCP2210::SPISettings MCP2210::getNVSPISettings(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_NVRAM_SETTINGS, NV_SPI_SETTINGS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -405,7 +405,7 @@ std::u16string MCP2210::getProductDesc(int &errcnt, std::string &errstr)
 // Returns applied SPI transfer settings
 MCP2210::SPISettings MCP2210::getSPISettings(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_SPI_SETTINGS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -424,7 +424,7 @@ MCP2210::SPISettings MCP2210::getSPISettings(int &errcnt, std::string &errstr)
 // Gets the USB parameters, namely VID, PID and power settings
 MCP2210::USBParameters MCP2210::getUSBParameters(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_NVRAM_SETTINGS, USB_PARAMETERS  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -515,7 +515,7 @@ int MCP2210::open(uint16_t vid, uint16_t pid, const std::string &serial)
 // Reads a byte from the given EEPROM address
 uint8_t MCP2210::readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         READ_EEPROM,  // Header
         address       // Address to be read
     };
@@ -547,7 +547,7 @@ std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &e
 // Resets the interrupt event counter
 uint8_t MCP2210::resetEventCounter(int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         GET_EVENT_COUNT,  // Header
         0x00              // Reset the event counter
     };
@@ -610,7 +610,7 @@ uint8_t MCP2210::setGPIODirection(int gpio, bool direction, int &errcnt, std::st
 // Sets the directions of all GPIO pins on the MCP2210
 uint8_t MCP2210::setGPIODirections(uint8_t directions, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         SET_GPIO_DIRECTIONS, 0x00, 0x00, 0x00,  // Header
         directions, 0x01                        // GPIO directions (GPIO7 to GPIO0)
     };
@@ -621,7 +621,7 @@ uint8_t MCP2210::setGPIODirections(uint8_t directions, int &errcnt, std::string 
 // Sets the values of all GPIO pins on the MCP2210
 uint8_t MCP2210::setGPIOs(uint16_t values, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         SET_GPIO_VALUES, 0x00, 0x00, 0x00,  // Header
         static_cast<uint8_t>(values)        // GPIO values (GPIO7 to GPPIO0 - GPIO8 is an input only pin)
     };
@@ -691,19 +691,17 @@ uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
 uint8_t MCP2210::usePassword(const std::string &password, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
-    if (password.size() > PASSWORD_MAXLEN) {
+    size_t passwordLength = password.size();
+    if (passwordLength > PASSWORD_MAXLEN) {
         ++errcnt;
         errstr += "In usePassword(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
-        std::vector<uint8_t> command = {
-            SEND_PASSWORD, 0x00, 0x00, 0x00  // Header
-        };
-        char *passwordcstr = new char[password.size() + 1];
-        std::strcpy(passwordcstr, password.c_str());
-        uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
-        command.insert(command.end(), passworducstr, passworducstr + std::strlen(passwordcstr));
-        delete[] passwordcstr;
+        std::vector<uint8_t> command(passwordLength + 4);  // Since version 1.1.2, the vector is initialized with the adequate size
+        command[0] = SEND_PASSWORD;  // Header
+        for (size_t i = 0; i < passwordLength; ++i) {  // This section was simplified in version 1.1.2
+            command[i + 4] = static_cast<uint8_t>(password[i]);
+        }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         retval = response[1];
     }
@@ -713,7 +711,7 @@ uint8_t MCP2210::usePassword(const std::string &password, int &errcnt, std::stri
 // Writes a byte to a given EEPROM address
 uint8_t MCP2210::writeEEPROMByte(uint8_t address, uint8_t value, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         WRITE_EEPROM,  // Header
         address,       // Address to be written
         value          // Value
@@ -769,36 +767,36 @@ uint8_t MCP2210::writeManufacturerDesc(const std::u16string &manufacturer, int &
 uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t accessControlMode, const std::string &password, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
+    size_t passwordLength = password.size();
     if (accessControlMode != ACNONE && accessControlMode != ACPASSWORD && accessControlMode != ACLOCKED) {
         ++errcnt;
         errstr += "In writeNVChipSettings(): the specified access control mode is not supported.\n";  // Program logic error
         retval = OTHER_ERROR;
-    } else if (password.size() > PASSWORD_MAXLEN) {
+    } else if (passwordLength > PASSWORD_MAXLEN) {
         ++errcnt;
         errstr += "In writeNVChipSettings(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
-        std::vector<uint8_t> command = {
-            SET_NVRAM_SETTINGS, NV_CHIP_SETTINGS, 0x00, 0x00,                                                  // Header
-            settings.gp0,                                                                                      // GP0 pin configuration
-            settings.gp1,                                                                                      // GP1 pin configuration
-            settings.gp2,                                                                                      // GP2 pin configuration
-            settings.gp3,                                                                                      // GP3 pin configuration
-            settings.gp4,                                                                                      // GP4 pin configuration
-            settings.gp5,                                                                                      // GP5 pin configuration
-            settings.gp6,                                                                                      // GP6 pin configuration
-            settings.gp7,                                                                                      // GP7 pin configuration
-            settings.gp8,                                                                                      // GP8 pin configuration
-            settings.gpout, 0x00,                                                                              // Default GPIO outputs (GPIO7 to GPIO0)
-            settings.gpdir, 0x01,                                                                              // Default GPIO directions (GPIO7 to GPIO0)
-            static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi),  // Other chip settings
-            accessControlMode                                                                                  // Access control mode
-        };
-        char *passwordcstr = new char[password.size() + 1];
-        std::strcpy(passwordcstr, password.c_str());
-        uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
-        command.insert(command.end(), passworducstr, passworducstr + std::strlen(passwordcstr));
-        delete[] passwordcstr;
+        std::vector<uint8_t> command(passwordLength + 19);  // Since version 1.1.2, the vector is initialized with the adequate size
+        command[0] = SET_NVRAM_SETTINGS;                                                                                 // Header
+        command[1] = NV_CHIP_SETTINGS;
+        command[4] = settings.gp0;                                                                                       // GP0 pin configuration
+        command[5] = settings.gp1;                                                                                       // GP1 pin configuration
+        command[6] = settings.gp2;                                                                                       // GP2 pin configuration
+        command[7] = settings.gp3;                                                                                       // GP3 pin configuration
+        command[8] = settings.gp4;                                                                                       // GP4 pin configuration
+        command[9] = settings.gp5;                                                                                       // GP5 pin configuration
+        command[10] = settings.gp6;                                                                                      // GP6 pin configuration
+        command[11] = settings.gp7;                                                                                      // GP7 pin configuration
+        command[12] = settings.gp8,                                                                                      // GP8 pin configuration
+        command[13] = settings.gpout;                                                                                    // Default GPIO outputs (GPIO7 to GPIO0)
+        command[15] = settings.gpdir;                                                                                    // Default GPIO directions (GPIO7 to GPIO0)
+        command[16] = 0x01;
+        command[17] = static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi);  // Other chip settings
+        command[18] = accessControlMode;                                                                                 // Access control mode
+        for (size_t i = 0; i < passwordLength; ++i) {  // This section was simplified in version 1.1.2
+            command[i + 19] = static_cast<uint8_t>(password[i]);
+        }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         retval = response[1];
     }
@@ -815,7 +813,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, int &errcnt, 
 // Writes the given SPI transfer settings to the MCP2210 OTP NVRAM
 uint8_t MCP2210::writeNVSPISettings(const SPISettings &settings, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         SET_NVRAM_SETTINGS, NV_SPI_SETTINGS, 0x00, 0x00,                                             // Header
         static_cast<uint8_t>(settings.bitrate), static_cast<uint8_t>(settings.bitrate >> 8),         // Bit rate
         static_cast<uint8_t>(settings.bitrate >> 16), static_cast<uint8_t>(settings.bitrate >> 24),
@@ -848,7 +846,7 @@ uint8_t MCP2210::writeProductDesc(const std::u16string &product, int &errcnt, st
 // Writes the USB parameters to the MCP2210 OTP NVRAM
 uint8_t MCP2210::writeUSBParameters(const USBParameters &parameters, int &errcnt, std::string &errstr)
 {
-    std::vector<uint8_t> command = {
+    std::vector<uint8_t> command{
         SET_NVRAM_SETTINGS, USB_PARAMETERS, 0x00, 0x00,                                                       // Header
         static_cast<uint8_t>(parameters.vid), static_cast<uint8_t>(parameters.vid >> 8),                      // Vendor ID
         static_cast<uint8_t>(parameters.pid), static_cast<uint8_t>(parameters.pid >> 8),                      // Product ID
