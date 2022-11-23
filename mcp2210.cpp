@@ -691,14 +691,15 @@ uint8_t MCP2210::toggleGPIO(int gpio, int &errcnt, std::string &errstr)
 uint8_t MCP2210::usePassword(const std::string &password, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
-    if (password.size() > PASSWORD_MAXLEN) {
+    size_t passwordLength = password.size();
+    if (passwordLength > PASSWORD_MAXLEN) {
         ++errcnt;
         errstr += "In usePassword(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
-        std::vector<uint8_t> command(password.size() + 4);  // Since version 1.1.2, the vector is initialized with the adequate size
+        std::vector<uint8_t> command(passwordLength + 4);  // Since version 1.1.2, the vector is initialized with the adequate size
         command[0] = SEND_PASSWORD;  // Header
-        for (size_t i = 0; i < password.size(); ++i) {  // This section was simplified in version 1.1.2
+        for (size_t i = 0; i < passwordLength; ++i) {  // This section was simplified in version 1.1.2
             command[i + 4] = static_cast<uint8_t>(password[i]);
         }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
@@ -766,16 +767,17 @@ uint8_t MCP2210::writeManufacturerDesc(const std::u16string &manufacturer, int &
 uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t accessControlMode, const std::string &password, int &errcnt, std::string &errstr)
 {
     uint8_t retval;
+    size_t passwordLength = password.size();
     if (accessControlMode != ACNONE && accessControlMode != ACPASSWORD && accessControlMode != ACLOCKED) {
         ++errcnt;
         errstr += "In writeNVChipSettings(): the specified access control mode is not supported.\n";  // Program logic error
         retval = OTHER_ERROR;
-    } else if (password.size() > PASSWORD_MAXLEN) {
+    } else if (passwordLength > PASSWORD_MAXLEN) {
         ++errcnt;
         errstr += "In writeNVChipSettings(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
-        std::vector<uint8_t> command(password.size() + 19);  // Since version 1.1.2, the vector is initialized with the adequate size
+        std::vector<uint8_t> command(passwordLength + 19);  // Since version 1.1.2, the vector is initialized with the adequate size
         command[0] = SET_NVRAM_SETTINGS;                                                                                 // Header
         command[1] = NV_CHIP_SETTINGS;
         command[4] = settings.gp0;                                                                                       // GP0 pin configuration
@@ -792,7 +794,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         command[16] = 0x01;
         command[17] = static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi);  // Other chip settings
         command[18] = accessControlMode;                                                                                 // Access control mode
-        for (size_t i = 0; i < password.size(); ++i) {  // This section was simplified in version 1.1.2
+        for (size_t i = 0; i < passwordLength; ++i) {  // This section was simplified in version 1.1.2
             command[i + 19] = static_cast<uint8_t>(password[i]);
         }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
