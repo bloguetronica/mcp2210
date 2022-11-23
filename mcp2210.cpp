@@ -696,14 +696,11 @@ uint8_t MCP2210::usePassword(const std::string &password, int &errcnt, std::stri
         errstr += "In usePassword(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
-        std::vector<uint8_t> command{
-            SEND_PASSWORD, 0x00, 0x00, 0x00  // Header
-        };
-        char *passwordcstr = new char[password.size() + 1];
-        std::strcpy(passwordcstr, password.c_str());
-        uint8_t *passworducstr = reinterpret_cast<uint8_t *>(passwordcstr);
-        command.insert(command.end(), passworducstr, passworducstr + std::strlen(passwordcstr));
-        delete[] passwordcstr;
+        std::vector<uint8_t> command(password.size() + 4);  // Since version 1.1.2, the vector is initialized with the adequate size
+        command[0] = SEND_PASSWORD;  // Header
+        for (size_t i = 0; i < password.size(); ++i) {  // This section was simplified in version 1.1.2
+            command[i + 4] = static_cast<uint8_t>(password[i]);
+        }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         retval = response[1];
     }
@@ -778,7 +775,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         errstr += "In writeNVChipSettings(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
-        std::vector<uint8_t> command(password.size() + 19);  // Since version 1.1.2, the vector is constructed with the adequate size
+        std::vector<uint8_t> command(password.size() + 19);  // Since version 1.1.2, the vector is initialized with the adequate size
         command[0] = SET_NVRAM_SETTINGS;                                                                                 // Header
         command[1] = NV_CHIP_SETTINGS;
         command[4] = settings.gp0;                                                                                       // GP0 pin configuration
@@ -795,7 +792,7 @@ uint8_t MCP2210::writeNVChipSettings(const ChipSettings &settings, uint8_t acces
         command[16] = 0x01;
         command[17] = static_cast<uint8_t>(settings.rmwakeup << 4 | (0x07 & settings.intmode) << 1 | settings.nrelspi);  // Other chip settings
         command[18] = accessControlMode;                                                                                 // Access control mode
-        for (size_t i = 0; i < password.size(); ++i) {  // This for loop was implemented in version 1.1.2, in order to simplify the algorithm
+        for (size_t i = 0; i < password.size(); ++i) {  // This section was simplified in version 1.1.2
             command[i + 19] = static_cast<uint8_t>(password[i]);
         }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
