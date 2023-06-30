@@ -1,5 +1,5 @@
-/* MCP2210 class - Version 1.1.2
-   Copyright (c) 2022 Samuel Lourenço
+/* MCP2210 class - Version 1.2.0
+   Copyright (c) 2022-2023 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published by
@@ -40,15 +40,16 @@ private:
 
 public:
     // Class definitions
-    static const uint16_t VID = 0x04d8;        // Default USB vendor ID
-    static const uint16_t PID = 0x00de;        // Default USB product ID
-    static const int SUCCESS = 0;              // Returned by open() if successful
-    static const int ERROR_INIT = 1;           // Returned by open() in case of a libusb initialization failure
-    static const int ERROR_NOT_FOUND = 2;      // Returned by open() if the device was not found
-    static const int ERROR_BUSY = 3;           // Returned by open() if the device is already in use
-    static const size_t COMMAND_SIZE = 64;     // HID command size
-    static const size_t SPIDATA_MAXSIZE = 60;  // Maximum size of the data vector for a single SPI transfer (only applicable to basic SPI transfers)
-    static const size_t PASSWORD_MAXLEN = 8;   // Maximum length for the password
+    static const uint16_t VID = 0x04d8;                                  // Default USB vendor ID
+    static const uint16_t PID = 0x00de;                                  // Default USB product ID
+    static const int SUCCESS = 0;                                        // Returned by open() if successful
+    static const int ERROR_INIT = 1;                                     // Returned by open() in case of a libusb initialization failure
+    static const int ERROR_NOT_FOUND = 2;                                // Returned by open() if the device was not found
+    static const int ERROR_BUSY = 3;                                     // Returned by open() if the device is already in use
+    static const size_t COMMAND_SIZE = 64;                               // HID command size
+    static const size_t PREAMBLE_SIZE = 4;                               // HID command preamble size
+    static const size_t SPIDATA_MAXSIZE = COMMAND_SIZE - PREAMBLE_SIZE;  // Maximum size of the data vector [60] for a single SPI transfer (only applicable to basic SPI transfers)
+    static const size_t PASSWORD_MAXLEN = 8;                             // Maximum length for the password
 
     // Descriptor specific definitions
     static const size_t DESC_MAXLEN = 28;  // Maximum length for any descriptor

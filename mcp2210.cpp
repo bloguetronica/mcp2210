@@ -1,5 +1,5 @@
-/* MCP2210 class - Version 1.1.2
-   Copyright (c) 2022 Samuel Lourenço
+/* MCP2210 class - Version 1.2.0
+   Copyright (c) 2022-2023 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published by
@@ -39,11 +39,12 @@ std::u16string MCP2210::getDescGeneric(uint8_t subcomid, int &errcnt, std::strin
         GET_NVRAM_SETTINGS, subcomid  // Header
     };
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
-    size_t maxLength = 2 * DESC_MAXLEN + 2;  // Maximum descriptor length in bytes
-    size_t length = (response[4] > maxLength ? maxLength : response[4]) - 2;  // Descriptor internal length
+    size_t maxSize = 2 * DESC_MAXLEN;  // Maximum size of the descriptor in bytes (the zero padding at the end takes two more bytes)
+    size_t size = response[4] - 2;  // Descriptor actual size, excluding the padding
+    size = size > maxSize ? maxSize : size;  // This also fixes an erroneous result due to a possible unsigned integer rollover (bug fixed in version 1.2.0)
     std::u16string descriptor;
-    for (size_t i = 0; i < length; i += 2) {
-        descriptor += static_cast<char16_t>(response[i + 7] << 8 | response[i + 6]);  // UTF-16LE conversion as per the USB 2.0 specification
+    for (size_t i = 0; i < size; i += 2) {
+        descriptor += static_cast<char16_t>(response[i + PREAMBLE_SIZE + 3] << 8 | response[i + PREAMBLE_SIZE + 2]);  // UTF-16LE conversion as per the USB 2.0 specification
     }
     return descriptor;
 }
@@ -84,7 +85,7 @@ void MCP2210::interruptTransfer(uint8_t endpointAddr, unsigned char *data, int l
 uint8_t MCP2210::writeDescGeneric(const std::u16string &descriptor, uint8_t subcomid, int &errcnt, std::string &errstr)
 {
     size_t strLength = descriptor.size();  // Descriptor string length
-    std::vector<uint8_t> command(2 * strLength + 6);
+    std::vector<uint8_t> command(2 * strLength + PREAMBLE_SIZE + 2);
     command[0] = SET_NVRAM_SETTINGS;                       // Header
     command[1] = subcomid;
     command[2] = 0x00;
@@ -92,8 +93,8 @@ uint8_t MCP2210::writeDescGeneric(const std::u16string &descriptor, uint8_t subc
     command[4] = static_cast<uint8_t>(2 * strLength + 2);  // Descriptor length in bytes
     command[5] = 0x03;                                     // USB descriptor constant
     for (size_t i = 0; i < strLength; ++i) {
-        command[2 * i + 6] = static_cast<uint8_t>(descriptor[i]);
-        command[2 * i + 7] = static_cast<uint8_t>(descriptor[i] >> 8);
+        command[2 * i + PREAMBLE_SIZE + 2] = static_cast<uint8_t>(descriptor[i]);
+        command[2 * i + PREAMBLE_SIZE + 3] = static_cast<uint8_t>(descriptor[i] >> 8);
     }
     std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
     return response[1];
@@ -639,11 +640,11 @@ std::vector<uint8_t> MCP2210::spiTransfer(const std::vector<uint8_t> &data, uint
         ++errcnt;
         errstr += "In spiTransfer(): vector size cannot exceed 60 bytes.\n";  // Program logic error
     } else {
-        std::vector<uint8_t> command(bytesToSend + 4);
+        std::vector<uint8_t> command(bytesToSend + PREAMBLE_SIZE);
         command[0] = TRANSFER_SPI_DATA;                  // Header
         command[1] = static_cast<uint8_t>(bytesToSend);  // Number of bytes to send
         for (size_t i = 0; i < bytesToSend; ++i) {
-            command[i + 4] = data[i];
+            command[i + PREAMBLE_SIZE] = data[i];
         }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         if (response[1] == COMPLETED) {  // If the HID transfer was completed
@@ -651,7 +652,7 @@ std::vector<uint8_t> MCP2210::spiTransfer(const std::vector<uint8_t> &data, uint
             size_t bytesReceived = response[2];
             retdata.resize(bytesReceived);
             for (size_t i = 0; i < bytesReceived; ++i) {
-                retdata[i] = response[i + 4];
+                retdata[i] = response[i + PREAMBLE_SIZE];
             }
         } else {
             status = response[1];  // The returned status corresponds to the obtained HID command response (it can be "BUSY" [0xf7] or "IN_PROGRESS" [0xf8])
@@ -697,10 +698,10 @@ uint8_t MCP2210::usePassword(const std::string &password, int &errcnt, std::stri
         errstr += "In usePassword(): password cannot be longer than 8 characters.\n";  // Program logic error
         retval = OTHER_ERROR;
     } else {
-        std::vector<uint8_t> command(passwordLength + 4);  // Since version 1.1.2, the vector is initialized with the adequate size
+        std::vector<uint8_t> command(passwordLength + PREAMBLE_SIZE);  // Since version 1.1.2, the vector is initialized with the adequate size
         command[0] = SEND_PASSWORD;  // Header
         for (size_t i = 0; i < passwordLength; ++i) {  // This section was simplified in version 1.1.2
-            command[i + 4] = static_cast<uint8_t>(password[i]);
+            command[i + PREAMBLE_SIZE] = static_cast<uint8_t>(password[i]);
         }
         std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
         retval = response[1];
