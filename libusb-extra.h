@@ -1,5 +1,5 @@
-/* Extra functions for libusb - Version 1.0.3
-   Copyright (c) 2018-2021 Samuel Lourenço
+/* Extra functions for libusb - Version 1.0.4
+   Copyright (c) 2018-2024 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,6 @@
 #include <libusb-1.0/libusb.h>
 
 // Function prototypes
-libusb_device_handle *libusb_open_device_with_vid_pid_serial(libusb_context *context, uint16_t vid, uint16_t pid, unsigned char *serial);
+libusb_device_handle *libusb_open_device_with_vid_pid_serial(libusb_context *context, uint16_t vid, uint16_t pid, const unsigned char *serial);
 
 #endif
