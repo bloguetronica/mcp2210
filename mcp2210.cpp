@@ -1,5 +1,5 @@
-/* MCP2210 class - Version 1.2.1
-   Copyright (c) 2022-2023 Samuel Lourenço
+/* MCP2210 class - Version 1.3.0
+   Copyright (c) 2022-2025 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published by
@@ -543,6 +543,18 @@ std::vector<uint8_t> MCP2210::readEEPROMRange(uint8_t begin, uint8_t end, int &e
         }
     }
     return values;
+}
+
+// Requests the SPI bus to be released from the MCP2210 end (added in version 1.3.0)
+// This function also allows you to set the value of the SPI Bus Release ACK pin (GP7 pin assigned to dedicated function)
+uint8_t MCP2210::requestSPIBusRelease(bool value, int &errcnt, std::string &errstr)
+{
+    std::vector<uint8_t> command{
+        REQUEST_BUS_RELEASE,  // Header
+        value                 // Value of SPI Bus Release ACK pin
+    };
+    std::vector<uint8_t> response = hidTransfer(command, errcnt, errstr);
+    return response[1];
 }
 
 // Resets the interrupt event counter
