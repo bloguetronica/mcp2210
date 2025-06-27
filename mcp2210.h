@@ -1,5 +1,5 @@
-/* MCP2210 class - Version 1.2.1
-   Copyright (c) 2022-2023 Samuel Lourenço
+/* MCP2210 class - Version 1.3.0
+   Copyright (c) 2022-2025 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published by
@@ -77,6 +77,7 @@ public:
     static const uint8_t SET_NVRAM_SETTINGS = 0x60;   // Set NVRAM settings
     static const uint8_t GET_NVRAM_SETTINGS = 0x61;   // Get NVRAM settings
     static const uint8_t SEND_PASSWORD = 0x70;        // Send password
+    static const uint8_t REQUEST_BUS_RELEASE = 0x80;  // Request SPI bus release
 
     // NVRAM settings sub-command IDs
     static const uint8_t NV_SPI_SETTINGS = 0x10;    // Power-up (non-volatile) SPI transfer settings
@@ -290,6 +291,7 @@ public:
     int open(uint16_t vid, uint16_t pid, const std::string &serial = std::string());
     uint8_t readEEPROMByte(uint8_t address, int &errcnt, std::string &errstr);
     std::vector<uint8_t> readEEPROMRange(uint8_t begin, uint8_t end, int &errcnt, std::string &errstr);
+    uint8_t requestSPIBusRelease(bool value, int &errcnt, std::string &errstr);
     uint8_t resetEventCounter(int &errcnt, std::string &errstr);
     uint8_t setGPIO(int gpio, bool value, int &errcnt, std::string &errstr);
     uint8_t setGPIODirection(int gpio, bool direction, int &errcnt, std::string &errstr);
