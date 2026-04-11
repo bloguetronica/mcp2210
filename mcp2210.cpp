@@ -1,5 +1,5 @@
-/* MCP2210 class - Version 1.3.0
-   Copyright (c) 2022-2025 Samuel Lourenço
+/* MCP2210 class - Version 1.3.1
+   Copyright (c) 2022-2026 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published by
@@ -473,7 +473,7 @@ std::vector<uint8_t> MCP2210::hidTransfer(const std::vector<uint8_t> &data, int 
 int MCP2210::open(uint16_t vid, uint16_t pid, const std::string &serial)
 {
     int retval;
-    if (isOpen()) {  // Just in case the calling algorithm tries to open a device that was already sucessfully open, or tries to open different devices concurrently, all while using (or referencing to) the same object
+    if (isOpen()) {  // Just in case the calling algorithm tries to open a device that was already successfully open, or tries to open different devices concurrently, all while using (or referencing to) the same object
         retval = SUCCESS;
     } else if (libusb_init(&context_) != 0) {  // Initialize libusb. In case of failure
         retval = ERROR_INIT;
