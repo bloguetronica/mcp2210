@@ -1,5 +1,5 @@
-/* MCP2210 class - Version 1.3.0
-   Copyright (c) 2022-2025 Samuel Lourenço
+/* MCP2210 class - Version 1.3.1
+   Copyright (c) 2022-2026 Samuel Lourenço
 
    This library is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published by
@@ -263,7 +263,7 @@ public:
         bool operator !=(const USBParameters &other) const;
     };
 
-    MCP2210();
+    explicit MCP2210();  // Explicit since version 1.3.1
     ~MCP2210();
 
     bool disconnected() const;
