@@ -263,7 +263,7 @@ public:
         bool operator !=(const USBParameters &other) const;
     };
 
-    MCP2210();
+    explicit MCP2210();  // Explicit since version 1.3.1
     ~MCP2210();
 
     bool disconnected() const;
